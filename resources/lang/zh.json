@@ -91,7 +91,6 @@
     "Feedback": "问题反馈",
     "Changelog": "更新日志",
     "RestartApp": "重启软件",
-
     "__Comment_Page1__": "--- 1. 主界面设置 (MainPanelPage) ---",
     "MainFormSettings": "主界面设置",
     "HideMainForm": "隐藏主界面",
@@ -104,7 +103,6 @@
     "ActionToggleVisible": "显示/隐藏主界面",
     "ActionTaskMgr": "打开任务管理器",
     "ActionSettings": "打开设置面板",
-
     "Appearance": "外观设置",
     "Theme": "主题",
     "DisplayMode": "显示模式",
@@ -115,7 +113,6 @@
     "Opacity": "透明度",
     "Percent": "百分比",
     "UsedSize": "已用容量",
-
     "__Comment_Page2__": "--- 2. 任务栏设置 (TaskbarPage) ---",
     "TaskbarSettings": "任务栏设置",
     "TaskbarShow": "任务栏显示",
@@ -147,7 +144,6 @@
     "BackgroundColor": "字体背景色",
     "ScreenColorPicker": "屏幕取色工具",
     "ScreenColorPickerTip": "是否将字体背景颜色设为：",
-
     "__Comment_Page3__": "--- 3. 监控项显示 (MonitorPage) ---",
     "MonitorItemDisplay": "监控项显示",
     "MonitorItem": "监控项",
@@ -161,36 +157,28 @@
     "OnlyShowEnabled": "仅看显示项",
     "HorizontalFollowsTaskbar": "横条模式采用任务栏排序",
     "MonitorItemTip": "注：名称/简称/单位输入空格即可不显示标签或单位，而清空保存后会恢复默认，部分单位支持占位符{u}+字符",
-
     "__Comment_Page4__": "--- 4. 告警阈值设置 (ThresholdPage) ---",
     "Thresholds": "告警阈值设置",
     "AlertTemp": "高温报警弹窗",
     "AlertThreshold": "高温报警阈值",
-    
     "ThresholdsTips": "⚠️进度条和数值将根据硬件阈值显示对应的颜色",
     "GeneralHardware": "通用硬件",
     "HardwareLoad": "硬件负载",
-    
     "HardwareTemp": "硬件温度",
-
     "NetworkDiskSpeed": "网络与磁盘速率",
     "DiskIOSpeed": "磁盘读写速率",
     "UploadSpeed": "上传速率",
     "DownloadSpeed": "下载速率",
-
     "__Comment_Page5__": "--- 5. 系统与硬件 (SystemHardwarPage) ---",
     "SystemHardwar": "硬件与系统",
-    
     "SystemSettings": "系统设置",
     "Language": "语言/Language",
     "AutoStart": "开机启动",
     "AutoCheckUpdate": "自动检查更新",
     "HideTrayIcon": "隐藏托盘图标",
-
     "Calibration": "硬件参数校准",
     "MaxLimits": "最大值",
     "CalibrationTip": "⚠️为了进度条显示更准确，请填写硬件实际的最大值，不填将在高负载时自动学习并更新最大值",
-
     "HardwareSettings": "硬件与传感器设置",
     "DiskSource": "首选磁盘",
     "NetworkSource": "首选网卡",
@@ -199,6 +187,8 @@
     "UseWinPerCounters": "优先使用系统计数器",
     "UseWinPerCountersTip": "⚠️如数据不准可关闭系统计数器，关闭后，CPU使用率、CPU频率、内存占用、磁盘读取将直读硬件传感器",
     "Refresh": "刷新频率",
-    "MemoryDisplayMode": "内存/显存显示"
+    "MemoryDisplayMode": "内存/显存显示",
+    "TaskbarShowBar": "任务栏进度条",
+    "UsedTotal": "当前/总量"
   }
 }

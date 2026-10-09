@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading; // 必须引用：用于 Mutex
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using SafeMonitor.src.Core;
 using SafeMonitor.src.SystemServices;
@@ -23,8 +24,8 @@ namespace SafeMonitor
 
             try
             {
-                // [修正] 使用 Process 获取真实路径，解决单文件发布路径为空的问题
-                string exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                // 使用 Environment.ProcessPath（.NET 6+），避免 Process 句柄泄漏与单文件发布路径为空
+                string exePath = Environment.ProcessPath;
 
                 if (string.IsNullOrEmpty(exePath))
                 {
@@ -66,6 +67,9 @@ namespace SafeMonitor
 
             if (!createNew)
             {
+                // 已有实例运行：释放句柄后退出（未获取所有权，只 Dispose 不 Release）
+                _mutex?.Dispose();
+                _mutex = null;
                 return; 
             }
 
@@ -79,6 +83,9 @@ namespace SafeMonitor
             // 捕获非 UI 线程（后台线程）的异常
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+            // 捕获未被观察的任务异常（async void / fire-and-forget）
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
             // =================================================================
             // ★★★ 3. 启动应用 ★★★
             // =================================================================
@@ -90,10 +97,12 @@ namespace SafeMonitor
             }
             finally
             {
-                // 显式释放锁
+                // 显式释放锁（含 Dispose，避免内核对象句柄泄漏）
                 if (_mutex != null)
                 {
-                    _mutex.ReleaseMutex();
+                    try { _mutex.ReleaseMutex(); } catch { }
+                    _mutex.Dispose();
+                    _mutex = null;
                 }
             }
         }
@@ -107,6 +116,13 @@ namespace SafeMonitor
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             LogCrash(e.ExceptionObject as Exception, "Background_Thread");
+        }
+
+        // 未被观察的任务异常：仅记录日志，不弹窗（这类异常通常在 GC 时触发，弹窗无意义）
+        static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            LogCrash(e.Exception, "UnobservedTask");
+            e.SetObserved(); // 标记已观察，避免进程崩溃
         }
 
         // --- 写入 crash.log 的核心方法 ---

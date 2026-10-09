@@ -187,6 +187,8 @@
     "UseWinPerCounters": "Use Sys Counters",
     "UseWinPerCountersTip": "⚠️Disable if inaccurate. CPU/GPU/MEM/DISK read from sensors.",
     "Refresh": "Rate",
-    "MemoryDisplayMode": "RAM Display"
+    "MemoryDisplayMode": "RAM Display",
+    "TaskbarShowBar": "Taskbar Progress Bar",
+    "UsedTotal": "Used/Total"
   }
 }

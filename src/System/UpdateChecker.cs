@@ -78,6 +78,7 @@ namespace SafeMonitor
                 string changelog = info.Value.changelog;
                 string releaseDate = info.Value.releaseDate;
                 string downloadUrl = info.Value.downloadUrl;
+                string sha256 = info.Value.sha256;
                 string current = GetCurrentVersion();
 
                 if (IsNewer(latest, current))
@@ -96,6 +97,18 @@ namespace SafeMonitor
                         return;
                     }
 
+                    // 安全校验：拒绝非 GitHub 官方域名的下载源
+                    if (!IsTrustedDownloadUrl(downloadUrl))
+                    {
+                        Debug.WriteLine("[Update] 拒绝非 GitHub 下载源: " + downloadUrl);
+                        if (showMessage)
+                        {
+                            ShowInfo("更新源校验失败，已中止下载。", "Update source verification failed, download aborted.",
+                                "检查更新", "Update Check", MessageBoxIcon.Warning);
+                        }
+                        return;
+                    }
+
                     bool isZh = settings?.Language?.ToLower() == "zh";
                     var context = new DownloadContext
                     {
@@ -105,7 +118,8 @@ namespace SafeMonitor
                         Urls = new[] { downloadUrl },
                         SavePath = Path.Combine(AppContext.BaseDirectory, "resources", "update.zip"),
                         ActionButtonText = "Update",
-                        AutoExitOnSuccess = true
+                        AutoExitOnSuccess = true,
+                        ExpectedSha256 = sha256
                     };
 
                     new UpdateDialog(context, settings).ShowDialog();
@@ -135,7 +149,7 @@ namespace SafeMonitor
         // ========================================================
         // 从 GitHub Releases API 获取最新版本
         // ========================================================
-        private static async Task<(string latest, string changelog, string releaseDate, string downloadUrl)?> GetLatestReleaseAsync()
+        private static async Task<(string latest, string changelog, string releaseDate, string downloadUrl, string sha256)?> GetLatestReleaseAsync()
         {
             try
             {
@@ -165,6 +179,7 @@ namespace SafeMonitor
 
                 // 在 assets 中查找 win-x64 压缩包
                 string downloadUrl = "";
+                string sha256 = "";
                 if (root.TryGetProperty("assets", out var assetsEl))
                 {
                     foreach (var asset in assetsEl.EnumerateArray())
@@ -174,12 +189,14 @@ namespace SafeMonitor
                             name.IndexOf("win-x64", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             downloadUrl = asset.GetProperty("browser_download_url").GetString() ?? "";
+                            string digest = asset.TryGetProperty("digest", out var dg) ? (dg.GetString() ?? "") : "";
+                            sha256 = NormalizeSha256(digest);
                             break;
                         }
                     }
                 }
 
-                return (latest, changelog, releaseDate, downloadUrl);
+                return (latest, changelog, releaseDate, downloadUrl, sha256);
             }
             catch (Exception ex)
             {
@@ -194,6 +211,39 @@ namespace SafeMonitor
                 return lv > cv;
             // 版本号解析失败时，按字符串不等视为有新版本
             return !string.Equals(latest, current, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 将 GitHub asset 的 digest（形如 "sha256:abcd..."）规范化为纯 64 位十六进制串。
+        /// 仅接受 sha256 算法；空值或其他算法返回空串（视为"无法校验"）。
+        /// </summary>
+        private static string NormalizeSha256(string digest)
+        {
+            if (string.IsNullOrWhiteSpace(digest)) return "";
+            int idx = digest.IndexOf(':');
+            if (idx >= 0)
+            {
+                string algo = digest.Substring(0, idx);
+                if (!algo.Equals("sha256", StringComparison.OrdinalIgnoreCase)) return "";
+                digest = digest.Substring(idx + 1);
+            }
+            digest = digest.Trim();
+            // 64 位十六进制
+            if (digest.Length != 64) return "";
+            return digest;
+        }
+
+        /// <summary>
+        /// 下载 URL 域名白名单：仅允许 GitHub 官方域名，防止 API 返回被投毒后的非预期下载源。
+        /// </summary>
+        private static bool IsTrustedDownloadUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var u)) return false;
+            if (u.Scheme != Uri.UriSchemeHttps) return false;
+            string host = u.Host;
+            return host.Equals("github.com", StringComparison.OrdinalIgnoreCase) ||
+                   host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) ||
+                   host.Equals("objects.githubusercontent.com", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void ShowInfo(string zh, string en, string zhTitle, string enTitle, MessageBoxIcon icon)
@@ -239,15 +289,18 @@ namespace SafeMonitor
                 {
                     foreach (var p in Process.GetProcessesByName(name))
                     {
-                        try
+                        using (p)
                         {
-                            if (p.MainModule != null &&
-                                p.MainModule.FileName.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                            try
                             {
-                                p.Kill();
+                                if (p.MainModule != null &&
+                                    p.MainModule.FileName.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    p.Kill();
+                                }
                             }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
 

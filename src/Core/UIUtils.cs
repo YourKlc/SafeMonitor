@@ -102,6 +102,10 @@ namespace SafeMonitor.src.Core
             }
         }
 
+        /// <summary>
+        /// 返回共享的缓存 Font。
+        /// <b>警告：返回的对象归本缓存所有，调用方严禁 Dispose。</b>
+        /// </summary>
         public static Font GetFont(string familyName, float size, bool bold)
         {
             string key = $"{familyName}_{size}_{bold}";
@@ -133,7 +137,17 @@ namespace SafeMonitor.src.Core
 
                 foreach (var p in _penCache.Values) p.Dispose();
                 _penCache.Clear();
-                
+            }
+        }
+
+        /// <summary>
+        /// 释放字体缓存。仅在进程退出等明确场景调用；
+        /// 持有方（如 TaskbarRenderer）在调用后必须重新 ReloadStyle。
+        /// </summary>
+        public static void ClearFontCache()
+        {
+            lock (_brushLock)
+            {
                 foreach (var f in _fontCache.Values) f.Dispose();
                 _fontCache.Clear();
             }

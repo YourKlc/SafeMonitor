@@ -51,6 +51,9 @@ namespace SafeMonitor.src.SystemServices
         private float _cpuBaseFreq = 0;   // CPU 基准频率 (MHz)
         private float _totalMemoryMB = 0; // 物理内存总量 (MB)
 
+        // 防止 InitializeAsync 后台任务在 Dispose 之后继续创建计数器导致泄漏
+        private bool _disposed;
+
         /// <summary>
         /// 标记计数器是否已完成初始化和预热。
         /// </summary>
@@ -158,9 +161,12 @@ namespace SafeMonitor.src.SystemServices
             try
             {
                 if (!PerformanceCounterCategory.Exists(category)) return null;
-                return string.IsNullOrEmpty(instance) 
+                var pc = string.IsNullOrEmpty(instance) 
                     ? new PerformanceCounter(category, counter) 
                     : new PerformanceCounter(category, counter, instance);
+                // Dispose 已先于后台初始化发生：立即释放，避免泄漏
+                if (_disposed) { pc.Dispose(); return null; }
+                return pc;
             }
             catch
             {
@@ -200,6 +206,7 @@ namespace SafeMonitor.src.SystemServices
                         {
                             var pc = new PerformanceCounter(category, cname, inst);
                             pc.NextValue(); // 预热，首次恒为 0
+                            if (_disposed) { pc.Dispose(); return null; }
                             _thermalIsHighPrecision = cname.StartsWith("High Precision", StringComparison.OrdinalIgnoreCase);
                             NativeInstanceName = inst;
                             return pc;
@@ -264,6 +271,7 @@ namespace SafeMonitor.src.SystemServices
 
                 var pc = new PerformanceCounter(category, "Power", pick.Value.inst);
                 pc.NextValue(); // 预热（该计数器基于两次采样差，首次无效）
+                if (_disposed) { pc.Dispose(); return; }
                 _cpuPowerCounter = pc;
                 _cpuPowerInstanceName = pick.Value.inst;
                 _cpuPowerInstanceIsPkg = pick.Value.isPkg;
@@ -470,6 +478,9 @@ namespace SafeMonitor.src.SystemServices
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
+
             // 释放所有计数器资源
             _cpuLoadCounter?.Dispose();
             _cpuFreqCounter?.Dispose();
@@ -486,6 +497,8 @@ namespace SafeMonitor.src.SystemServices
             _smbClientWriteCounter?.Dispose();
             _smbServerReadCounter?.Dispose();
             _smbServerWriteCounter?.Dispose();
+
+            GC.SuppressFinalize(this);
         }
 
         // --- Win32 API 内存结构体定义 ---

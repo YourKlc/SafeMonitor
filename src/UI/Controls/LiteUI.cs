@@ -646,7 +646,56 @@ namespace SafeMonitor.src.UI.Controls
             }
         }
     }
-    public class LiteNavBtn : Button { private bool _isActive; public bool IsActive { get => _isActive; set { _isActive = value; Invalidate(); } } public LiteNavBtn(string text) { Text = "  " + text; Size = new Size(UIUtils.S(150), UIUtils.S(40)); FlatStyle = FlatStyle.Flat; FlatAppearance.BorderSize = 0; TextAlign = ContentAlignment.MiddleLeft; Font = new Font("Microsoft YaHei UI", 10F); Cursor = Cursors.Hand; Margin = UIUtils.S(new Padding(5, 2, 5, 2)); BackColor = UIColors.SidebarBg; ForeColor = UIColors.TextMain; } protected override void OnPaint(PaintEventArgs e) { Color bg = _isActive ? UIColors.NavSelected : (ClientRectangle.Contains(PointToClient(Cursor.Position)) ? UIColors.NavHover : UIColors.SidebarBg); using (var b = new SolidBrush(bg)) e.Graphics.FillRectangle(b, ClientRectangle); if (_isActive) { using (var b = new SolidBrush(UIColors.Primary)) e.Graphics.FillRectangle(b, 0, UIUtils.S(8), UIUtils.S(3), Height - UIUtils.S(16)); Font = new Font(Font, FontStyle.Bold); } else { Font = new Font(Font, FontStyle.Regular); } TextRenderer.DrawText(e.Graphics, Text, Font, new Point(UIUtils.S(12), UIUtils.S(9)), UIColors.TextMain); } protected override void OnMouseEnter(EventArgs e) { base.OnMouseEnter(e); Invalidate(); } protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); Invalidate(); } }
+    public class LiteNavBtn : Button
+    {
+        private bool _isActive;
+        private readonly Font _fontBold;
+        private readonly Font _fontRegular;
+
+        public bool IsActive { get => _isActive; set { if (_isActive != value) { _isActive = value; Invalidate(); } } }
+
+        public LiteNavBtn(string text)
+        {
+            Text = "  " + text;
+            Size = new Size(UIUtils.S(150), UIUtils.S(40));
+            FlatStyle = FlatStyle.Flat;
+            FlatAppearance.BorderSize = 0;
+            TextAlign = ContentAlignment.MiddleLeft;
+            Font = new Font("Microsoft YaHei UI", 10F);
+            // 预建粗体/常规字体，避免 OnPaint 每次 new Font 造成 GDI 句柄泄漏
+            _fontBold = new Font(Font, FontStyle.Bold);
+            _fontRegular = new Font(Font, FontStyle.Regular);
+            Cursor = Cursors.Hand;
+            Margin = UIUtils.S(new Padding(5, 2, 5, 2));
+            BackColor = UIColors.SidebarBg;
+            ForeColor = UIColors.TextMain;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Color bg = _isActive ? UIColors.NavSelected : (ClientRectangle.Contains(PointToClient(Cursor.Position)) ? UIColors.NavHover : UIColors.SidebarBg);
+            using (var b = new SolidBrush(bg)) e.Graphics.FillRectangle(b, ClientRectangle);
+            if (_isActive)
+            {
+                using (var b = new SolidBrush(UIColors.Primary)) e.Graphics.FillRectangle(b, 0, UIUtils.S(8), UIUtils.S(3), Height - UIUtils.S(16));
+            }
+            Font drawFont = _isActive ? _fontBold : _fontRegular;
+            TextRenderer.DrawText(e.Graphics, Text, drawFont, new Point(UIUtils.S(12), UIUtils.S(9)), UIColors.TextMain);
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { base.OnMouseEnter(e); Invalidate(); }
+        protected override void OnMouseLeave(EventArgs e) { base.OnMouseLeave(e); Invalidate(); }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _fontBold.Dispose();
+                _fontRegular.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
     public class LiteSortBtn : Button { public LiteSortBtn(string txt) { Text = txt; Size = new Size(UIUtils.S(24), UIUtils.S(24)); FlatStyle = FlatStyle.Flat; FlatAppearance.BorderSize = 0; BackColor = Color.FromArgb(245, 245, 245); ForeColor = Color.DimGray; Cursor = Cursors.Hand; Font = new Font("Microsoft YaHei UI", 7F, FontStyle.Bold); Margin = new Padding(0); } }
     
     // ★★★ New: Header Button (Variable Width) ★★★

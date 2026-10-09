@@ -115,6 +115,7 @@ namespace SafeMonitor.src.UI.SettingsPage
             _styleCombo.Enabled = !(Config?.TaskbarCustomLayout ?? false);
 
             group.AddToggle(this, "Menu.TaskbarSingleLine", () => Config?.TaskbarSingleLine ?? false, v => { if(Config!=null) Config.TaskbarSingleLine = v; });
+            group.AddToggle(this, "Menu.TaskbarShowBar", () => Config?.TaskbarShowBar ?? true, v => { if(Config!=null) Config.TaskbarShowBar = v; });
             group.AddToggle(this, "Menu.TaskbarHoverShowAll", () => Config?.TaskbarHoverShowAll ?? false, v => { if (Config != null) Config.TaskbarHoverShowAll = v; });
             group.AddToggle(this, "Menu.ClickThrough", () => Config?.TaskbarClickThrough ?? false, v => { if(Config!=null) Config.TaskbarClickThrough = v; });
            

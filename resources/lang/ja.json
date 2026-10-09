@@ -187,6 +187,8 @@
     "UseWinPerCounters": "システムカウンター優先",
     "UseWinPerCountersTip": "⚠️不正確な場合は無効にしてください。CPU/GPU/RAM/ディスクはセンサーから直接読み取られます。",
     "Refresh": "更新頻度",
-    "MemoryDisplayMode": "メモリ表示"
+    "MemoryDisplayMode": "メモリ表示",
+    "TaskbarShowBar": "タスクバープログレスバー",
+    "UsedTotal": "使用/合計"
   }
 }

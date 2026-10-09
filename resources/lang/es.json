@@ -187,6 +187,8 @@
     "UseWinPerCounters": "Contadores Sistema",
     "UseWinPerCountersTip": "⚠️Desactiva si no es exacto. CPU/GPU/RAM/DISCO leídos desde sensores.",
     "Refresh": "Tasa",
-    "MemoryDisplayMode": "Vis. RAM"
+    "MemoryDisplayMode": "Vis. RAM",
+    "TaskbarShowBar": "Barra de progreso de la barra de tareas",
+    "UsedTotal": "Usado/Total"
   }
 }

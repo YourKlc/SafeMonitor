@@ -118,6 +118,30 @@ namespace SafeMonitor.src.Core
         }
 
         /// <summary>
+        /// 计算"当前/总量"显示所需的数值与单位（统一用总量确定单位）。
+        /// 例：内存占用 37.5%、总量 32GB → ("12", "32", "GB")，最终显示 "12/32GB"。
+        /// </summary>
+        private static (string usedVal, string totalVal, string unit) GetMemoryUsedTotalParts(string key, float percent)
+        {
+            double totalGB = GetMemoryTotalGB(key);
+            if (totalGB <= 0)
+                return ("--", "--", "GB");
+
+            double totalBytes = totalGB * 1073741824.0;
+            var totalParts = FormatDataSizeParts(totalBytes, -1);
+
+            // 把已用值换算到与总量相同的单位
+            int order = Array.IndexOf(_dataSizes, totalParts.unit);
+            if (order < 0) order = 2; // 默认 GB
+            double usedInUnit = (percent / 100.0) * totalBytes / Math.Pow(1024, order + 1);
+
+            // 总量在同单位下的数值（如 32GB → 32）
+            double totalInUnit = totalGB / Math.Pow(1024, order - 2);
+
+            return (FormatTrimmed(usedInUnit), FormatTrimmed(totalInUnit), totalParts.unit);
+        }
+
+        /// <summary>
         /// 获取纯数值字符串 (已处理缩放、舍入、紧凑模式)
         /// </summary>
         public static string GetValueStr(string key, float? value, bool compact = false)
@@ -125,10 +149,15 @@ namespace SafeMonitor.src.Core
             float v = value ?? 0.0f;
             var type = GetType(key);
 
-            // 1. 内存特殊处理 (容量 vs 百分比)
+            // 1. 内存特殊处理 (容量 vs 百分比 vs 当前/总量)
             if (type == MetricType.Memory)
             {
                  var cfg = Settings.Load();
+                 if (cfg.MemoryDisplayMode == 2) // 当前/总量 (如 12/32)
+                 {
+                     var (usedVal, totalVal, _) = GetMemoryUsedTotalParts(key, v);
+                     return usedVal + "/" + totalVal;
+                 }
                  if (cfg.MemoryDisplayMode == 1) // 容量模式
                  {
                      double totalGB = GetMemoryTotalGB(key);
@@ -182,6 +211,16 @@ namespace SafeMonitor.src.Core
             return val.ToString("0");                      // 100+
         }
 
+        /// <summary>
+        /// 去尾零的数值格式化（最多 2 位小数，去掉末尾的 0 与小数点），
+        /// 用于"当前/总量"这类紧凑显示（如 12/32 而非 12.0/32.0）。
+        /// </summary>
+        private static string FormatTrimmed(double val)
+        {
+            if (val >= 100) return val.ToString("0");
+            return val.ToString("0.##");
+        }
+
         public enum UnitContext
         {
             Panel,          // 主界面 (完整, 带空格)
@@ -200,7 +239,14 @@ namespace SafeMonitor.src.Core
             // 1. 内存 (GB vs %)
             if (type == MetricType.Memory) 
             {
-                if (Settings.Load().MemoryDisplayMode != 1) return "%";
+                int mode = Settings.Load().MemoryDisplayMode;
+                if (mode == 2) // 当前/总量
+                {
+                    if (context == UnitContext.SettingsPanel || context == UnitContext.SettingsTaskbar) return "{u}";
+                    var (_, _, unit) = GetMemoryUsedTotalParts(key, value ?? 0f);
+                    return unit;
+                }
+                if (mode != 1) return "%";
                 if (context == UnitContext.SettingsPanel || context == UnitContext.SettingsTaskbar) return "{u}";
 
                 double totalGB = GetMemoryTotalGB(key);

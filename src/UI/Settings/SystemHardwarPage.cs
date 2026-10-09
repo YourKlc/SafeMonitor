@@ -50,11 +50,12 @@ namespace SafeMonitor.src.UI.SettingsPage
             {
                 string strAuto = LanguageManager.T("Menu.Auto");
 
-                // 1. 并行等待所有数据返回 (使用 HardwareScanner)
-                var taskNets  = Task.Run(() => HardwareScanner.ListAllNetworks(HardwareMonitor.Instance.ComputerInstance));
+                // 1. 并行等待所有数据返回 (走 HardwareMonitor 静态 API，内部已做单例空引用兜底)
+                var taskNets  = Task.Run(() => HardwareMonitor.ListAllNetworks());
                 var taskGpus  = Task.Run(() => HardwareMonitor.ListAllGpuOptions());
 
-                await Task.WhenAll(taskNets, taskGpus);
+                var nets = await taskNets;
+                var gpus = await taskGpus;
 
                 // 2. ★★★ 锁定全局布局 (防止每填一个框就重绘一次) ★★★
                 this.SuspendLayout();
@@ -108,8 +109,8 @@ namespace SafeMonitor.src.UI.SettingsPage
                 }
 
                 // 3. 瞬间填入所有数据 (因为布局被挂起，用户看不见中间过程)
-                FillSync(_cbNet, taskNets.Result, Config.PreferredNetwork);
-                FillGpuSync(_cbGpu, taskGpus.Result, Config.PreferredGpu);
+                FillSync(_cbNet, nets, Config.PreferredNetwork);
+                FillGpuSync(_cbGpu, gpus, Config.PreferredGpu);
             }
             catch (Exception ex)
             {
@@ -131,9 +132,9 @@ namespace SafeMonitor.src.UI.SettingsPage
             group.AddToggle(this, "Menu.UseWinPerCounters", () => Config?.UseWinPerCounters ?? false, v => { if(Config!=null) Config.UseWinPerCounters = v; });
             
             // 内存/显存显示模式 (从主界面设置移来)
-            string[] memOptions = { LanguageManager.T("Menu.Percent"), LanguageManager.T("Menu.UsedSize") };
+            string[] memOptions = { LanguageManager.T("Menu.Percent"), LanguageManager.T("Menu.UsedSize"), LanguageManager.T("Menu.UsedTotal") };
             group.AddComboIndex(this, "Menu.MemoryDisplayMode", memOptions,
-                () => Config?.MemoryDisplayMode ?? 0,
+                () => Config?.MemoryDisplayMode ?? 2,
                 idx => { if (Config != null) Config.MemoryDisplayMode = idx; }
             );
 

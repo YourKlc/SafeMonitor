@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Security.Principal;
-using System.Net.Security; // For SslClientAuthenticationOptions
 using SafeMonitor.src.Core; // 修复: 引用 Settings 类
 
 namespace SafeMonitor
@@ -25,6 +24,9 @@ namespace SafeMonitor
         public string VersionLabel { get; set; } = "";
         public string ActionButtonText { get; set; } = "Install";
         public bool AutoExitOnSuccess { get; set; } = false; // 更新模式下为 true
+
+        // 安全校验：更新包的 SHA256 期望值（64 位十六进制，来自 GitHub Release asset digest）
+        public string ExpectedSha256 { get; set; } = "";
     }
 
     public partial class UpdateDialog : Form
@@ -88,10 +90,20 @@ namespace SafeMonitor
         {
             try
             {
+                // 协议白名单：仅允许 http/https，阻止 file://、UNC 等以管理员权限执行任意程序
+                if (!Uri.TryCreate(e.LinkText, UriKind.Absolute, out var uri) ||
+                    (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                {
+                    string t = IsChinese ? "安全提示" : "Security";
+                    string m = IsChinese ? $"已阻止打开非安全链接：{e.LinkText}" : $"Blocked unsafe link: {e.LinkText}";
+                    MessageBox.Show(m, t, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 // 使用默认浏览器打开链接
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = e.LinkText,
+                    FileName = uri.AbsoluteUri,
                     UseShellExecute = true
                 });
             }
@@ -217,16 +229,11 @@ namespace SafeMonitor
                             ? $"正在连接下载服务器..." 
                             : $"Connecting to server...";
 
-                        // 4. 配置 HttpClient (支持 SSL Bypass 和超时)
-                        var handler = new SocketsHttpHandler
+                        // 4. 配置 HttpClient（使用默认证书校验，不做任何 SSL 绕过）
+                        using var http = new HttpClient(new SocketsHttpHandler
                         {
-                            SslOptions = new SslClientAuthenticationOptions
-                            {
-                                RemoteCertificateValidationCallback = delegate { return true; }
-                            }
-                        };
-
-                        using var http = new HttpClient(handler)
+                            PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+                        })
                         { 
                             Timeout = TimeSpan.FromMinutes(10) 
                         };
@@ -286,6 +293,16 @@ namespace SafeMonitor
                             }
                         }
                         
+                        // 下载完成后校验 SHA256（若提供了期望值）
+                        if (!string.IsNullOrEmpty(_context.ExpectedSha256))
+                        {
+                            string actual = ComputeSha256(_context.SavePath);
+                            if (!actual.Equals(_context.ExpectedSha256, StringComparison.OrdinalIgnoreCase))
+                            {
+                                throw new InvalidDataException("更新包完整性校验失败，已中止安装。");
+                            }
+                        }
+
                         // 下载成功
                         downloadSuccess = true;
                         break; 
@@ -461,6 +478,14 @@ namespace SafeMonitor
                     File.Delete(_context.SavePath);
             }
             catch { /* 忽略清理错误 */ }
+        }
+
+        // 计算文件的 SHA256 十六进制串
+        private static string ComputeSha256(string path)
+        {
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            return Convert.ToHexString(sha.ComputeHash(fs));
         }
 
         protected override void OnLoad(EventArgs e)

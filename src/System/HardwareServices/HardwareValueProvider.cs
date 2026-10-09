@@ -8,7 +8,7 @@ using Debug = System.Diagnostics.Debug;
 
 namespace SafeMonitor.src.SystemServices
 {
-    public class HardwareValueProvider : IDisposable
+    public class HardwareValueProvider
     {
         private readonly Computer _computer;
         private readonly Settings _cfg;
@@ -411,8 +411,9 @@ namespace SafeMonitor.src.SystemServices
                         float? total = GetValue("GPU.VRAM.Total");
                         if (used.HasValue && total.HasValue && total > 0)
                         {
-                            if (Settings.DetectedGpuVramTotalGB <= 0) Settings.DetectedGpuVramTotalGB = total.Value / 1024f;
+                            // 先归一化到 MB（部分驱动以字节上报），再写入容量缓存，避免单位错误
                             if (total > 10485760) { used /= 1048576f; total /= 1048576f; }
+                            if (Settings.DetectedGpuVramTotalGB <= 0) Settings.DetectedGpuVramTotalGB = total.Value / 1024f;
                             result = used / total * 100f;
                         }
                         else
@@ -592,10 +593,6 @@ namespace SafeMonitor.src.SystemServices
                    last <= max
                 ? last
                 : null;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

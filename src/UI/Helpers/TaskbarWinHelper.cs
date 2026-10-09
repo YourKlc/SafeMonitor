@@ -99,8 +99,19 @@ namespace SafeMonitor.src.UI.Helpers
         private Rectangle _cachedResult = Rectangle.Empty;
         private bool _isCacheValid = false;
 
+        // 位置变化检测：位置/参数未变时跳过 SetWindowPos，避免每帧触发 Explorer 重排
+        private int _lastL = int.MinValue, _lastT = int.MinValue, _lastW = 0, _lastH = 0;
+        private int _lastManualOffset = int.MinValue;
+        private bool _lastAlignLeft;
+
         // [Optimization] 静态缓存系统版本检测结果
         private static readonly bool _isWin11 = Environment.OSVersion.Version.Major == 10 && Environment.OSVersion.Version.Build >= 22000;
+
+        // ★★★ 高频 Tick 路径缓存：避免每帧 FindWindow / 枚举目录 / 读注册表 ★★★
+        private static readonly Lazy<int> _cachedTaskbarDpi = new(ComputeTaskbarDpi);
+        private static readonly Lazy<int> _cachedWidgetsWidth = new(ComputeWidgetsWidth);
+        private static long _lastCenterAlignedCheck;
+        private static bool _cachedCenterAligned;
 
         public bool UsesInternalLayout => _strategy.HasInternalLayout;
         
@@ -172,6 +183,14 @@ namespace SafeMonitor.src.UI.Helpers
             {
                 AttachToTaskbar(taskbarHandle);
             }
+
+            // 位置与参数均未变化时跳过 SetWindowPos
+            if (left == _lastL && top == _lastT && w == _lastW && h == _lastH &&
+                manualOffset == _lastManualOffset && alignLeft == _lastAlignLeft)
+                return;
+
+            _lastL = left; _lastT = top; _lastW = w; _lastH = h;
+            _lastManualOffset = manualOffset; _lastAlignLeft = alignLeft;
 
             _strategy.SetPosition(taskbarHandle, left, top, w, h, manualOffset, alignLeft);
         }
@@ -302,6 +321,22 @@ namespace SafeMonitor.src.UI.Helpers
 
         public static bool IsCenterAligned()
         {
+            // 5 秒时间窗缓存，兼顾用户切换任务栏对齐方式后的刷新
+            long now = Environment.TickCount64;
+            if (now - _lastCenterAlignedCheck > 5000)
+            {
+                _lastCenterAlignedCheck = now;
+                _cachedCenterAligned = ComputeCenterAligned();
+            }
+            return _cachedCenterAligned;
+        }
+
+        public static int GetTaskbarDpi() => _cachedTaskbarDpi.Value;
+
+        public static int GetWidgetsWidth() => _cachedWidgetsWidth.Value;
+
+        private static bool ComputeCenterAligned()
+        {
             if (Environment.OSVersion.Version.Major < 10 || Environment.OSVersion.Version.Build < 22000) 
                 return false;
             try
@@ -312,7 +347,7 @@ namespace SafeMonitor.src.UI.Helpers
             catch { return false; }
         }
 
-        public static int GetTaskbarDpi()
+        private static int ComputeTaskbarDpi()
         {
             IntPtr taskbar = FindWindow("Shell_TrayWnd", null);
             if (taskbar != IntPtr.Zero)
@@ -322,7 +357,7 @@ namespace SafeMonitor.src.UI.Helpers
             return 96;
         }
 
-        public static int GetWidgetsWidth()
+        private static int ComputeWidgetsWidth()
         {
             int dpi = GetTaskbarDpi();
             if (_isWin11)

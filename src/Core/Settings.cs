@@ -92,6 +92,9 @@ namespace SafeMonitor
         public bool TaskbarHoverShowAll { get; set; } = true; // [新增] 悬浮显示所有监控项
         public int TaskbarManualOffset { get; set; } = 0;// 手动偏移量 (像素)
 
+        // ★★★ [新增] 任务栏进度条显示开关 ★★★
+        public bool TaskbarShowBar { get; set; } = true;
+
         // ====== 任务栏：高级自定义外观 ======
         public bool TaskbarCustomStyle { get; set; } = false; // 总开关
         public string TaskbarColorLabel { get; set; } = "#141414"; // 标签颜色
@@ -104,8 +107,8 @@ namespace SafeMonitor
         public int MainFormDoubleClickAction { get; set; } = 0;
         public int TaskbarDoubleClickAction { get; set; } = 0;
 
-        // 内存/显存显示模式
-        public int MemoryDisplayMode { get; set; } = 1;
+        // 内存/显存显示模式 (0=百分比, 1=已用容量, 2=当前/总量)
+        public int MemoryDisplayMode { get; set; } = 2;
 
         // ★ 2. 运行时缓存：存储探测到的总容量 (GB)
         [JsonIgnore] public static float DetectedRamTotalGB { get; set; } = 0;

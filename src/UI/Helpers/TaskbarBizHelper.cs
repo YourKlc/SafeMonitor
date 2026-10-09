@@ -248,20 +248,27 @@ namespace SafeMonitor.src.UI.Helpers
         // =================================================================
         public async void HandleDoubleClick(MainForm mainForm, UIController ui)
         {
-            switch (_cfg.TaskbarDoubleClickAction)
+            try
             {
-                case 1: try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("taskmgr") { UseShellExecute = true }); } catch { } break;
-                case 2: 
-                    foreach (Form f in Application.OpenForms) { if (f is SettingsForm) { f.Activate(); return; } }
-                    new SettingsForm(_cfg, ui, mainForm).Show(); 
-                    break;
-                case 3:
-                    try { using (var form = new CleanMemoryForm()) await form.StartCleaningAsync(); } catch { }
-                    break;
-                case 0:
-                default:
-                    if (mainForm.Visible) mainForm.HideMainWindow(); else mainForm.ShowMainWindow();
-                    break;
+                switch (_cfg.TaskbarDoubleClickAction)
+                {
+                    case 1: SystemActions.OpenTaskManager(); break;
+                    case 2: 
+                        foreach (Form f in Application.OpenForms) { if (f is SettingsForm) { f.Activate(); return; } }
+                        new SettingsForm(_cfg, ui, mainForm).Show(); 
+                        break;
+                    case 3:
+                        try { using (var form = new CleanMemoryForm()) await form.StartCleaningAsync(); } catch { }
+                        break;
+                    case 0:
+                    default:
+                        if (mainForm.Visible) mainForm.HideMainWindow(); else mainForm.ShowMainWindow();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] Error: {ex.Message}");
             }
         }
     }

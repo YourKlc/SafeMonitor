@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices; // ★★★ 新增：引用用于内存修剪的库
+using System.Runtime; // GCSettings / LargeObjectHeapCompactionMode
 using System.Reflection; // ★★★ 新增：用于反射关闭历史记录
 using LibreHardwareMonitor.Hardware;
 using SafeMonitor.src.Core;
@@ -81,7 +82,7 @@ namespace SafeMonitor.src.SystemServices
 
             // 2. 初始化服务
             _sensorMap = new SensorMap();
-            _networkManager = new NetworkManager(_perfCounterManager);
+            _networkManager = new NetworkManager();
             _diskManager = new DiskManager();
 
             // CPU 功耗/温度：按厂商走官方用户态 SDK（AMD Ryzen Master / Intel PresentMon）
@@ -195,7 +196,11 @@ namespace SafeMonitor.src.SystemServices
                 
                 OnValuesUpdated?.Invoke();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // 记录异常但不中断监控循环：单点硬件故障不应拖垮整轮刷新
+                System.Diagnostics.Debug.WriteLine($"[UpdateAll] Error: {ex.Message}");
+            }
 
             // [Fix #290] 硬件故障自动恢复
             // 如果检测到 GPU 丢失或驱动崩溃，触发安全重载以刷新硬件列表
@@ -222,8 +227,13 @@ namespace SafeMonitor.src.SystemServices
 
         public void CleanMemory(Action<int>? onProgress = null) => SystemOptimizer.CleanMemory(onProgress);
 
+        private bool _disposed;
+
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
+
             // ★★★ 核心修复：加锁！防止与正在运行的 UpdateAll() 冲突 ★★★
             lock (_lock)
             {
@@ -239,11 +249,14 @@ namespace SafeMonitor.src.SystemServices
                 }
             }
 
-            _valueProvider.Dispose();
             _cpuTelemetry?.Dispose();
             _perfCounterManager.Dispose(); // ★★★ [新增] 释放计数器资源 ★★★
             _networkManager.ClearCache();
             _diskManager.ClearCache(); // 漏掉的，补上
+
+            // 清空静态单例，避免悬垂引用被后续静态 API 误用
+            if (ReferenceEquals(Instance, this)) Instance = null;
+            GC.SuppressFinalize(this);
         }
         #endregion
 
@@ -286,9 +299,9 @@ namespace SafeMonitor.src.SystemServices
                             DisableSensorHistory();
                         }
 
-                        // 优化 T1：启动后大扫除
-                        GC.Collect(2, GCCollectionMode.Forced, true, true);
-                        SystemOptimizer.TrimWorkingSet();
+                        // 优化 T1：启动后大扫除（改为非阻塞式，避免强制 STW 压缩 LOH 造成的 100~500ms 顿挫）
+                        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                        GC.Collect(2, GCCollectionMode.Optimized, false);
                     });
                 }
                 catch (Exception ex)
@@ -419,7 +432,6 @@ namespace SafeMonitor.src.SystemServices
                     // 3. 关闭旧硬件服务
                     if (_computer != null)
                     {
-                        _computer.Accept(new HardwareVisitor(h => { }));
                         _computer.Close();
                         // ★★★ 核心修复：手动清空硬件列表 ★★★
                         // LHM 的 Close() 不会清空列表，必须手动 Clear，否则再次 Open 会追加重复硬件
@@ -436,11 +448,13 @@ namespace SafeMonitor.src.SystemServices
                 _sensorMap.Rebuild(_computer, _cfg);
                 _valueProvider.PreCacheAllSensors(_sensorMap);
 
-                // 4. 优化 T1：重置后再次修剪内存
-                GC.Collect();
-                SystemOptimizer.TrimWorkingSet();
+                // 4. 重载后轻量回收（不强制压缩，避免 STW）
+                GC.Collect(2, GCCollectionMode.Optimized, false);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ReloadComputerSafe] Error: {ex.Message}");
+            }
         }
 
         // =========================================================
@@ -491,28 +505,52 @@ namespace SafeMonitor.src.SystemServices
         #endregion
 
         #region Static UI Helpers (Delegated to HardwareScanner)
-        public static string GenerateSmartName(ISensor sensor, IHardware hardware) => 
-            HardwareScanner.GenerateSmartName(sensor, hardware, Instance!._computer);
+        public static string GenerateSmartName(ISensor sensor, IHardware hardware)
+        {
+            var inst = Instance;
+            if (inst == null) return sensor?.Name ?? hardware?.Name ?? "";
+            return HardwareScanner.GenerateSmartName(sensor, hardware, inst._computer);
+        }
 
-        public static List<string> ListAllNetworks() => HardwareScanner.ListAllNetworks(Instance!._computer);
+        public static List<string> ListAllNetworks()
+        {
+            var inst = Instance;
+            return inst == null ? new List<string>() : HardwareScanner.ListAllNetworks(inst._computer);
+        }
 
-        public static List<string> ListAllDisks() => HardwareScanner.ListAllDisks(Instance!._computer);
+        public static List<string> ListAllDisks()
+        {
+            var inst = Instance;
+            return inst == null ? new List<string>() : HardwareScanner.ListAllDisks(inst._computer);
+        }
 
         public static List<string> ListAllGpus()
         {
-            lock (Instance!._lock)
-                return HardwareScanner.ListAllGpus(Instance!._computer);
+            var inst = Instance;
+            if (inst == null) return new List<string>();
+            lock (inst._lock)
+                return HardwareScanner.ListAllGpus(inst._computer);
         }
 
         public static List<HardwareScanner.GpuOption> ListAllGpuOptions()
         {
-            lock (Instance!._lock)
-                return HardwareScanner.ListAllGpuOptions(Instance!._computer);
+            var inst = Instance;
+            if (inst == null) return new List<HardwareScanner.GpuOption>();
+            lock (inst._lock)
+                return HardwareScanner.ListAllGpuOptions(inst._computer);
         }
 
-        public static List<string> ListAllFans() => HardwareScanner.ListAllFans(Instance!._computer, Instance!._lock);
+        public static List<string> ListAllFans()
+        {
+            var inst = Instance;
+            return inst == null ? new List<string>() : HardwareScanner.ListAllFans(inst._computer, inst._lock);
+        }
 
-        public static List<string> ListAllMoboTemps() => HardwareScanner.ListAllMoboTemps(Instance!._computer, Instance!._lock);
+        public static List<string> ListAllMoboTemps()
+        {
+            var inst = Instance;
+            return inst == null ? new List<string>() : HardwareScanner.ListAllMoboTemps(inst._computer, inst._lock);
+        }
         #endregion
 
         #region Inner Visitors

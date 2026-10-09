@@ -35,14 +35,7 @@ namespace SafeMonitor
         {     
             var s = cfg.GetStyle();
 
-            // ★★★ 修复：先释放旧字体资源，防止 GDI 句柄泄漏 ★★★
-            if (_cachedFont != null)
-            {
-                try { _cachedFont.Dispose(); } catch { }
-                _cachedFont = null;
-            }
-
-            // 无论开关怎么变，这里拿到的永远是正确参数
+            // 直接引用共享缓存字体（由 UIUtils 持有，禁止在此 Dispose）
             _cachedFont = UIUtils.GetFont(s.Font, s.Size, s.Bold);
 
             // 颜色依然允许自定义
@@ -144,9 +137,17 @@ namespace SafeMonitor
                 return;
             }
 
+            // ★★★ [新增] 任务栏进度条：底部细条（开关开启且为普通项时） ★★★
+            bool showBar = Settings.Load().TaskbarShowBar && item.CachedPercent > 0;
+            int barH = showBar ? Math.Max(2, (int)Math.Round(rc.Height * 0.2)) : 0;
+
+            // 文本区域为进度条预留底部空间，避免重叠
+            Rectangle textRc = rc;
+            if (showBar) textRc.Height -= (barH + 1);
+
             // Label 左对齐
             TextRenderer.DrawText(
-                g, label, font, rc, labelColor,
+                g, label, font, textRc, labelColor,
                 TextFormatFlags.Left |
                 TextFormatFlags.VerticalCenter |
                 TextFormatFlags.NoPadding |
@@ -155,12 +156,38 @@ namespace SafeMonitor
 
             // Value 右对齐
             TextRenderer.DrawText(
-                g, value, font, rc, valueColor,
+                g, value, font, textRc, valueColor,
                 TextFormatFlags.Right |
                 TextFormatFlags.VerticalCenter |
                 TextFormatFlags.NoPadding |
                 TextFormatFlags.NoClipping
             );
+
+            // 绘制进度条
+            if (showBar)
+            {
+                var barRect = new Rectangle(rc.X, rc.Bottom - barH, rc.Width, barH);
+                DrawTaskbarBar(g, barRect, item.CachedPercent, valueColor);
+            }
+        }
+
+        /// <summary>
+        /// 绘制任务栏底部进度条（复用 UIUtils 的 Pen 缓存，零对象新建）。
+        /// </summary>
+        private static void DrawTaskbarBar(Graphics g, Rectangle rc, double percent, Color fg)
+        {
+            if (rc.Width <= 1 || rc.Height <= 0) return;
+
+            int y = rc.Y + rc.Height / 2;
+            float w = rc.Height; // 线宽 = 进度条高度
+
+            // 背景（半透明）
+            g.DrawLine(UIUtils.GetPen(Color.FromArgb(60, fg), w), rc.X, y, rc.Right, y);
+
+            // 前景
+            int fill = (int)(rc.Width * percent);
+            if (fill > 0)
+                g.DrawLine(UIUtils.GetPen(fg, w), rc.X, y, rc.X + fill, y);
         }
         // [新增] 辅助：根据状态快速获取颜色 (替代原来的 PickColor)
         private static Color GetStateColor(int state, bool light)

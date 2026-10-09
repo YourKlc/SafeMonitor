@@ -73,18 +73,13 @@ namespace SafeMonitor.src.SystemServices
         }
 
         /// <summary>
-        /// 执行定时维护任务 (流量保存、GC 优化、内存修剪)
+        /// 执行定时维护任务 (内存修剪)
         /// </summary>
         /// <param name="secondsCounter">系统运行秒数计数器</param>
         public static void RunMaintenanceTasks(long secondsCounter)
         {
-            // 2. 内存软清理: 每 180 秒 (Offset 30s)
-            if (secondsCounter % 180 == 30)
-            {
-                GC.Collect(2, GCCollectionMode.Optimized);
-            }
-
-            // 3. 内存硬清理: 每 300 秒 (5分钟) (Offset 45s)
+            // 内存硬清理: 每 300 秒 (5分钟) (Offset 45s)
+            // 移除主动 gen2 GC：托盘监控程序稳态堆很小，主动 GC 收益极低，反而周期性制造 STW 停顿
             if (secondsCounter % 300 == 45)
             {
                 try

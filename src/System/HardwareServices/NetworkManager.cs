@@ -16,13 +16,7 @@ namespace SafeMonitor.src.SystemServices
         private class NetworkState
         {
             public NetworkInterface? NativeAdapter;
-            public long LastNativeUpload;
-            public long LastNativeDownload;
             public DateTime LastMatchAttempt = DateTime.MinValue;
-            
-            // 缓存 LHM 传感器
-            public ISensor? CachedUpSensor;
-            public ISensor? CachedDownSensor;
         }
         private readonly Dictionary<IHardware, NetworkState> _netStates = new();
         
@@ -34,14 +28,8 @@ namespace SafeMonitor.src.SystemServices
         private static DateTime _lastIPCheckTime = DateTime.MinValue; // 上次检查IP的时间
         private volatile bool _shouldResetAdapters = false; // [Fix #287] 网络变更标记
 
-        // ★★★ 依赖注入：性能计数器 (用于获取 SMB 流量) ★★★
-        private readonly PerformanceCounterManager _perfManager;
-
-        public NetworkManager(PerformanceCounterManager perfManager = null)
+        public NetworkManager()
         {
-            // 允许为空 (为了兼容性)，如果为空则内部功能自动禁用
-            _perfManager = perfManager ?? new PerformanceCounterManager(); 
-            
             // [Fix #287] 监听网络地址变更事件，强制刷新 IP 和 网卡缓存
             // 当用户切换 WIFI 或插拔网线时，IP地址和网卡实例都会失效，必须重置
             NetworkChange.NetworkAddressChanged += (s, e) => {
@@ -318,7 +306,7 @@ namespace SafeMonitor.src.SystemServices
         }
 
         // ===========================================================
-        // 流量累积与匹配 (原 HardwareMonitor.cs 核心逻辑)
+        // 网卡匹配 (供 GetCurrentIP 使用)
         // ===========================================================
         private void AccumulateTraffic(IHardware hw, Settings cfg, double seconds)
         {
@@ -329,94 +317,12 @@ namespace SafeMonitor.src.SystemServices
                 _netStates[hw] = state;
             }
 
-            long finalUp = 0;
-            long finalDown = 0;
-
-            // A. LHM 估算值
-            if (state.CachedUpSensor == null || state.CachedDownSensor == null)
-            {
-                foreach (var s in hw.Sensors)
-                {
-                    if (s.SensorType != SensorType.Throughput) continue;
-                    if (_upKW.Any(k => SensorMap.Has(s.Name, k))) state.CachedUpSensor ??= s;
-                    if (_downKW.Any(k => SensorMap.Has(s.Name, k))) state.CachedDownSensor ??= s;
-                }
-            }
-            long lhmUpDelta = (long)((state.CachedUpSensor?.Value ?? 0) * seconds);
-            long lhmDownDelta = (long)((state.CachedDownSensor?.Value ?? 0) * seconds);
-
-            // B. 原生精准值
+            // ★★★ 仅保留网卡匹配副作用（供 GetCurrentIP 查询 IP 使用）★★★
+            // 原来的流量累积 finalUp/finalDown 与 SMB 内网扣除是死代码：
+            // UI 的 NET.Up / NET.Down 实际由 ReadNetworkSensor 直接读取 LHM 传感器，
+            // 此处计算的结果从未被任何代码消费，反而每帧白白触发
+            // GetIPStatistics（P/Invoke）+ 4 次 PerformanceCounter 读取。
             MatchNativeNetworkAdapter(hw.Name, state);
-            
-            bool nativeValid = false;
-            long nativeUpDelta = 0;
-            long nativeDownDelta = 0;
-
-            if (state.NativeAdapter != null)
-            {
-                try
-                {
-                    var stats = state.NativeAdapter.GetIPStatistics();
-                    long currUp = stats.BytesSent;
-                    long currDown = stats.BytesReceived;
-
-                    if (currUp >= state.LastNativeUpload) nativeUpDelta = currUp - state.LastNativeUpload;
-                    if (currDown >= state.LastNativeDownload) nativeDownDelta = currDown - state.LastNativeDownload;
-
-                    state.LastNativeUpload = currUp;
-                    state.LastNativeDownload = currDown;
-                    nativeValid = true;
-                }
-                catch { state.NativeAdapter = null; }
-            }
-
-            // C. 决策时刻
-            if (nativeValid)
-            {
-                if ((nativeUpDelta + nativeDownDelta == 0) && (lhmUpDelta + lhmDownDelta > 51200))
-                {
-                    // 匹配错误
-                    finalUp = lhmUpDelta;
-                    finalDown = lhmDownDelta;
-                    state.NativeAdapter = null; 
-                }
-                else
-                {
-                    finalUp = nativeUpDelta;
-                    finalDown = nativeDownDelta;
-                }
-            }
-            else
-            {
-                finalUp = lhmUpDelta;
-                finalDown = lhmDownDelta;
-            }
-
-            // ★★★ [新增] 忽略内网流量 (SMB) ★★★
-            // 如果用户开启了此选项，且计数器已就绪，则从总流量中扣除 SMB 流量
-            if (cfg.IgnoreSmbTraffic)
-            {
-                if (_perfManager.IsInitialized)
-                {
-                    // 获取估算的 SMB 流量 (内部已包含 1.1 倍的协议开销补偿)
-                    var smb = _perfManager.GetEstimatedSmbBytes(seconds);
-                    
-                    if (smb.UpBytes > 0 || smb.DownBytes > 0)
-                    {
-                        // 扣除 (由于采样时间误差，防止扣成负数)
-                        if (smb.UpBytes > 0) finalUp = Math.Max(0, finalUp - smb.UpBytes);
-                        if (smb.DownBytes > 0) finalDown = Math.Max(0, finalDown - smb.DownBytes);
-                    }
-                }
-                else
-                {
-                    // Debug.WriteLine("[SMB_DEBUG] IgnoreSmbTraffic=True but PerfManager NOT Initialized!");
-                }
-            }
-
-            // D. 存入数据
-            // ★★★ [新增] 安全阀：单次增量超过 10GB 视为异常丢弃 ★★★
-            if (finalUp > 10737418240L || finalDown > 10737418240L) return;
         }
 
         private void MatchNativeNetworkAdapter(string lhmName, NetworkState state)
@@ -504,13 +410,6 @@ namespace SafeMonitor.src.SystemServices
         private void SetNativeAdapter(NetworkInterface nic, NetworkState state)
         {
             state.NativeAdapter = nic;
-            try
-            {
-                var stats = nic.GetIPStatistics();
-                state.LastNativeUpload = stats.BytesSent;
-                state.LastNativeDownload = stats.BytesReceived;
-            }
-            catch { state.NativeAdapter = null; }
         }
 
         private bool IsVirtualNetwork(string name)

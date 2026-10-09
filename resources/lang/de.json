@@ -187,6 +187,8 @@
     "UseWinPerCounters": "Sys Zähler",
     "UseWinPerCountersTip": "⚠️Deaktivieren bei Ungenauigkeit. CPU/GPU/RAM/DISK von Sensoren gelesen.",
     "Refresh": "Rate",
-    "MemoryDisplayMode": "RAM Anzeige"
+    "MemoryDisplayMode": "RAM Anzeige",
+    "TaskbarShowBar": "Taskleisten-Fortschrittsbalken",
+    "UsedTotal": "Belegt/Gesamt"
   }
 }

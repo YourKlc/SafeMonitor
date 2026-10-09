@@ -11,9 +11,19 @@ namespace SafeMonitor.src.SystemServices
     {
         private const string TaskName = "SafeMonitor_AutoStart";
 
+        // 系统程序一律使用 System32 绝对路径，防止程序目录幽灵 EXE 劫持
+        private static readonly string System32Dir = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        private static string SchtasksPath => Path.Combine(System32Dir, "schtasks.exe");
+
         public static void Set(bool enabled)
         {
-            string exePath = Process.GetCurrentProcess().MainModule!.FileName!;
+            // 优先用 Environment.ProcessPath（.NET 6+，无异常、无 P/Invoke、不泄漏 Process 句柄）
+            string exePath = Environment.ProcessPath ?? "";
+            if (string.IsNullOrEmpty(exePath))
+            {
+                MessageBox.Show("无法获取程序路径，已取消操作。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             // 1. 网络路径拦截 (保留你的原始逻辑)
             try
@@ -32,7 +42,8 @@ namespace SafeMonitor.src.SystemServices
                 if (IsEnabledForCurrentExe(exePath)) return;
 
                 // 使用 XML 方案，这是唯一能同时满足 [不报PowerShell错误] + [实现电池启动] 的方案
-                string tempXmlPath = Path.Combine(Path.GetTempPath(), $"SafeMonitor_Task_{Guid.NewGuid()}.xml");
+                // 临时 XML 写入 ProgramData 下受保护目录（普通用户无写权限），规避 %TEMP% 抢写 TOCTOU
+                string tempXmlPath = Path.Combine(GetSafeTaskDir(), $"SafeMonitor_Task_{Guid.NewGuid()}.xml");
 
                 try
                 {
@@ -48,7 +59,7 @@ namespace SafeMonitor.src.SystemServices
                     // /XML: 指定配置文件
                     var startInfo = new ProcessStartInfo
                     {
-                        FileName = "schtasks.exe",
+                        FileName = SchtasksPath,
                         Arguments = $"/Create /TN \"{TaskName}\" /XML \"{tempXmlPath}\" /F",
                         CreateNoWindow = true,
                         UseShellExecute = false // 必须为 false 才能配合 CreateNoWindow 隐藏窗口
@@ -82,7 +93,7 @@ namespace SafeMonitor.src.SystemServices
                 // 删除任务 (逻辑保持不变)
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "schtasks.exe",
+                    FileName = SchtasksPath,
                     Arguments = $"/Delete /TN \"{TaskName}\" /F",
                     CreateNoWindow = true,
                     UseShellExecute = false
@@ -98,7 +109,7 @@ namespace SafeMonitor.src.SystemServices
         {
             try
             {
-                var psi = new ProcessStartInfo("schtasks", $"/Query /TN \"{TaskName}\"")
+                var psi = new ProcessStartInfo(SchtasksPath, $"/Query /TN \"{TaskName}\"")
                 {
                     CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true
                 };
@@ -116,7 +127,7 @@ namespace SafeMonitor.src.SystemServices
         {
             try
             {
-                var psi = new ProcessStartInfo("schtasks", $"/Query /TN \"{TaskName}\" /XML")
+                var psi = new ProcessStartInfo(SchtasksPath, $"/Query /TN \"{TaskName}\" /XML")
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false,
@@ -148,6 +159,25 @@ namespace SafeMonitor.src.SystemServices
             catch
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取存放临时任务 XML 的安全目录（ProgramData\SafeMonitor，普通用户不可写）。
+        /// 创建失败时降级回系统 Temp 目录。
+        /// </summary>
+        private static string GetSafeTaskDir()
+        {
+            try
+            {
+                string dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SafeMonitor");
+                Directory.CreateDirectory(dir);
+                return dir;
+            }
+            catch
+            {
+                return Path.GetTempPath();
             }
         }
 

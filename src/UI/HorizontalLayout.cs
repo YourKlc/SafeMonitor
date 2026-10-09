@@ -167,32 +167,17 @@ namespace SafeMonitor
                 string valText = item.TextValue ?? item.GetFormattedText(true);
                 if (string.IsNullOrEmpty(valText)) return 0;
 
-                Font valFont;
-                bool disposeFont = false;
+                // 复用共享缓存字体（禁止 Dispose），避免每次测量新建 Font
+                Font valFont = (_mode == LayoutMode.Taskbar)
+                    ? UIUtils.GetFont(s.Font, s.Size, s.Bold)
+                    : _t.FontItem;
 
-                if (_mode == LayoutMode.Taskbar)
-                {
-                    valFont = new Font(s.Font, s.Size, s.Bold ? FontStyle.Bold : FontStyle.Regular);
-                    disposeFont = true;
-                }
-                else
-                {
-                    valFont = _t.FontItem;
-                }
-
-                try
-                {
-                    int w = TextRenderer.MeasureText(g, valText, valFont,
-                        new Size(int.MaxValue, int.MaxValue),
-                        TextFormatFlags.NoPadding).Width;
-                    
-                    // 纯文本项建议稍微加一点点左右 padding，防止紧贴
-                    return w + 4;
-                }
-                finally
-                {
-                    if (disposeFont) valFont.Dispose();
-                }
+                int w = TextRenderer.MeasureText(g, valText, valFont,
+                    new Size(int.MaxValue, int.MaxValue),
+                    TextFormatFlags.NoPadding).Width;
+                
+                // 纯文本项建议稍微加一点点左右 padding，防止紧贴
+                return w + 4;
             }
             else
             {
@@ -200,14 +185,12 @@ namespace SafeMonitor
                 // 1. Label
                 string label = item.ShortLabel;
                 Font labelFont, valueFont;
-                bool disposeFont = false;
 
                 if (_mode == LayoutMode.Taskbar)
                 {
-                    var fs = s.Bold ? FontStyle.Bold : FontStyle.Regular;
-                    var f = new Font(s.Font, s.Size, fs);
+                    // 复用共享缓存字体
+                    var f = UIUtils.GetFont(s.Font, s.Size, s.Bold);
                     labelFont = f; valueFont = f;
-                    disposeFont = true;
                 }
                 else
                 {
@@ -215,34 +198,23 @@ namespace SafeMonitor
                     valueFont = _t.FontValue;
                 }
 
-                try
-                {
-                    int wLabel = TextRenderer.MeasureText(g, label, labelFont,
-                        new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding).Width;
+                int wLabel = TextRenderer.MeasureText(g, label, labelFont,
+                    new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding).Width;
 
-                    // 2. Value (使用样本值估算 或 真实值)
-                    string sample = GenerateSampleText(item);
+                // 2. Value (使用样本值估算 或 真实值)
+                string sample = GenerateSampleText(item);
 
-                    int wValue = TextRenderer.MeasureText(g, sample, valueFont,
-                        new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding).Width;
+                int wValue = TextRenderer.MeasureText(g, sample, valueFont,
+                    new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding).Width;
 
-                    // 3. Padding
-                    int paddingX;
-                    if (_mode == LayoutMode.Taskbar || _settings.HorizontalFollowsTaskbar)
-                        paddingX = (int)Math.Round(s.Inner * dpi);
-                    else
-                        paddingX = (int)Math.Round(_settings.HorizontalInnerSpacing * dpi);
+                // 3. Padding
+                int paddingX;
+                if (_mode == LayoutMode.Taskbar || _settings.HorizontalFollowsTaskbar)
+                    paddingX = (int)Math.Round(s.Inner * dpi);
+                else
+                    paddingX = (int)Math.Round(_settings.HorizontalInnerSpacing * dpi);
 
-                    return wLabel + wValue + paddingX;
-                }
-                finally
-                {
-                    if (disposeFont)
-                    {
-                        labelFont.Dispose();
-                        // valueFont is same reference as labelFont in Taskbar mode
-                    }
-                }
+                return wLabel + wValue + paddingX;
             }
         }
 
@@ -314,8 +286,8 @@ namespace SafeMonitor
                     {
                         if (item == null) return;
                         string text = item.TextValue ?? item.GetFormattedText(true);
-                        hash = hash * 31 + text.Length;
-                        // 关键：数字位宽一致，所以只对非数字字符（单位、小数点）做哈希
+                        // 关键：数字位宽一致，所以只对非数字字符（单位、小数点）做哈希。
+                        // 不纳入 text.Length，避免纯数字位数变化（如 100→1000）触发无谓的布局重建。
                         foreach (char c in text) if (!char.IsDigit(c)) hash = (hash << 5) - hash + c;
                     }
 

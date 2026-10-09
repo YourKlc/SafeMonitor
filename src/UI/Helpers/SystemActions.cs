@@ -11,6 +11,9 @@ namespace SafeMonitor.src.UI.Helpers
 {
     public static class SystemActions
     {
+        // 系统程序一律使用 System32 绝对路径，防止程序目录幽灵 EXE 劫持
+        private static readonly string System32Dir = Environment.GetFolderPath(Environment.SpecialFolder.System);
+
         // ==================================================================================
         // P/Invoke Definitions
         // ==================================================================================
@@ -77,7 +80,7 @@ namespace SafeMonitor.src.UI.Helpers
             try
             {
                 // Win10+ 有效的刷新命令，不需要重启 Explorer
-                Process.Start(new ProcessStartInfo("ie4uinit.exe", "-show") { CreateNoWindow = true, UseShellExecute = false });
+                Process.Start(new ProcessStartInfo(Path.Combine(System32Dir, "ie4uinit.exe"), "-show") { CreateNoWindow = true, UseShellExecute = false });
                 
                 // 通知系统关联已改变，强制刷新图标
                 NotifyShellUpdate();
@@ -152,7 +155,7 @@ namespace SafeMonitor.src.UI.Helpers
         {
             try
             {
-                Process.Start(new ProcessStartInfo("taskmgr") { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(Path.Combine(System32Dir, "taskmgr.exe")) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
@@ -170,7 +173,7 @@ namespace SafeMonitor.src.UI.Helpers
                 // 使用 cmd 组合命令避免中间出现太长时间的黑屏
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
+                    FileName = Path.Combine(System32Dir, "cmd.exe"),
                     Arguments = "/c taskkill /f /im explorer.exe & start explorer.exe",
                     CreateNoWindow = true,
                     UseShellExecute = false,
@@ -250,12 +253,12 @@ namespace SafeMonitor.src.UI.Helpers
             {
                 if (seconds <= 0)
                 {
-                    Process.Start(new ProcessStartInfo("shutdown", "-a") { CreateNoWindow = true, UseShellExecute = false });
+                    Process.Start(new ProcessStartInfo(Path.Combine(System32Dir, "shutdown.exe"), "-a") { CreateNoWindow = true, UseShellExecute = false });
                     // MessageBox.Show("已取消定时关机"); // 可选提示
                 }
                 else
                 {
-                    Process.Start(new ProcessStartInfo("shutdown", $"-s -t {seconds}") { CreateNoWindow = true, UseShellExecute = false });
+                    Process.Start(new ProcessStartInfo(Path.Combine(System32Dir, "shutdown.exe"), $"-s -t {seconds}") { CreateNoWindow = true, UseShellExecute = false });
                 }
             }
             catch (Exception ex)

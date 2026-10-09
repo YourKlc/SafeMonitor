@@ -249,6 +249,11 @@ namespace SafeMonitor
 
                 _form.Invalidate();   
             }
+            catch (Exception ex)
+            {
+                // 单次硬件读取异常不应拖垮整个监控循环或弹崩溃框
+                System.Diagnostics.Debug.WriteLine($"[Tick] Error: {ex.Message}");
+            }
             finally
             {
                 _busy = false;

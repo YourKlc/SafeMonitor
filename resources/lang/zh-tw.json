@@ -187,6 +187,8 @@
     "UseWinPerCounters": "優先使用系統計數器",
     "UseWinPerCountersTip": "⚠️如數據不準可關閉系統計數器，關閉後，CPU使用率、CPU頻率、記憶體占用、磁碟讀取將直讀硬體感測器",
     "Refresh": "重新整理頻率",
-    "MemoryDisplayMode": "記憶體/顯示記憶體顯示"
+    "MemoryDisplayMode": "記憶體/顯示記憶體顯示",
+    "TaskbarShowBar": "工作列進度條",
+    "UsedTotal": "目前/總量"
   }
 }

@@ -23,7 +23,7 @@ namespace SafeMonitor.src.SystemServices
 
         public Vendor CpuVendor { get; }
 
-        private readonly AmdRyzenMasterBackend _amd;
+        private readonly AmdRyzenMasterBackend? _amd;
 
         // 采样节流：SDK 不宜高频调用（AMD 建议 ~1 次/秒）
         private readonly object _sync = new();
@@ -130,39 +130,91 @@ namespace SafeMonitor.src.SystemServices
                 public double dAvgCoreVoltage;
             }
 
-            [DllImport("AMDRyzenMasterMonitoringDLL.dll", CallingConvention = CallingConvention.Cdecl)]
-            private static extern RMSystemInfo IsSupported();
-            [DllImport("AMDRyzenMasterMonitoringDLL.dll", CallingConvention = CallingConvention.Cdecl)]
-            private static extern bool PlatformInit();
-            [DllImport("AMDRyzenMasterMonitoringDLL.dll", CallingConvention = CallingConvention.Cdecl)]
-            private static extern bool PlatformUninit();
-            [DllImport("AMDRyzenMasterMonitoringDLL.dll", CallingConvention = CallingConvention.Cdecl)]
-            private static extern RMQuickStats ShortQuery();
+            // ★★★ 安全加载：仅从 System32 搜索，防止程序目录幽灵 DLL 劫持 ★★★
+            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hFile, uint dwFlags);
+            [DllImport("kernel32.dll", SetLastError = true)]
+            private static extern bool FreeLibrary(IntPtr hModule);
+            [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, BestFitMapping = false)]
+            private static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
+            private const uint LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
+
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            private delegate RMSystemInfo IsSupportedDelegate();
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            private delegate bool PlatformInitDelegate();
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            private delegate bool PlatformUninitDelegate();
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            private delegate RMQuickStats ShortQueryDelegate();
+
+            private readonly IntPtr _module;
+            private readonly IsSupportedDelegate _isSupported;
+            private readonly PlatformInitDelegate _platformInit;
+            private readonly PlatformUninitDelegate _platformUninit;
+            private readonly ShortQueryDelegate _shortQuery;
+            private bool _disposed;
 
             public bool IsAvailable { get; private set; }
 
-            private AmdRyzenMasterBackend() { }
-
-            public static AmdRyzenMasterBackend TryCreate()
+            private AmdRyzenMasterBackend(IntPtr module)
             {
+                _module = module;
+                _isSupported = GetDelegate<IsSupportedDelegate>(module, "IsSupported");
+                _platformInit = GetDelegate<PlatformInitDelegate>(module, "PlatformInit");
+                _platformUninit = GetDelegate<PlatformUninitDelegate>(module, "PlatformUninit");
+                _shortQuery = GetDelegate<ShortQueryDelegate>(module, "ShortQuery");
+            }
+
+            public static AmdRyzenMasterBackend? TryCreate()
+            {
+                IntPtr module = IntPtr.Zero;
                 try
                 {
-                    var info = IsSupported();
+                    // 只从 System32 加载；找不到（未装 Ryzen Master）则降级，不影响 ACPI/RAPL 兜底
+                    module = LoadLibraryEx("AMDRyzenMasterMonitoringDLL.dll", IntPtr.Zero, LOAD_LIBRARY_SEARCH_SYSTEM32);
+                    if (module == IntPtr.Zero) return null;
+
+                    var backend = new AmdRyzenMasterBackend(module);
+
+                    var info = backend._isSupported();
                     // 必须是 AMD 且驱动服务就绪
                     if (info.AuthenticAMD == 0 || info.DriverService == 0)
+                    {
+                        backend.Dispose();
                         return null;
+                    }
 
-                    var backend = new AmdRyzenMasterBackend();
-                    if (PlatformInit())
+                    if (backend._platformInit())
                     {
                         backend.IsAvailable = true;
+                        module = IntPtr.Zero; // 所有权已转移给 backend
                         return backend;
                     }
+
+                    backend.Dispose();
+                    return null;
                 }
                 catch (DllNotFoundException) { /* SDK 未安装 */ }
                 catch (EntryPointNotFoundException) { }
                 catch { }
+                finally
+                {
+                    // 所有权未转移时，负责释放模块
+                    if (module != IntPtr.Zero)
+                    {
+                        try { FreeLibrary(module); } catch { }
+                    }
+                }
                 return null;
+            }
+
+            private static T GetDelegate<T>(IntPtr module, string name) where T : Delegate
+            {
+                IntPtr addr = GetProcAddress(module, name);
+                if (addr == IntPtr.Zero) throw new EntryPointNotFoundException(name);
+                return Marshal.GetDelegateForFunctionPointer<T>(addr);
             }
 
             public float? GetTemperature()
@@ -170,7 +222,7 @@ namespace SafeMonitor.src.SystemServices
                 if (!IsAvailable) return null;
                 try
                 {
-                    var s = ShortQuery();
+                    var s = _shortQuery();
                     if (s.Init == 0) return null;
                     double t = s.dTemperature;
                     // 合理性校验，剔除脏数据
@@ -184,7 +236,7 @@ namespace SafeMonitor.src.SystemServices
                 if (!IsAvailable) return null;
                 try
                 {
-                    var s = ShortQuery();
+                    var s = _shortQuery();
                     if (s.Init == 0) return null;
                     float p = s.fPPTValue;
                     return (p >= 0 && p < 1000) ? p : null;
@@ -194,9 +246,17 @@ namespace SafeMonitor.src.SystemServices
 
             public void Dispose()
             {
-                if (!IsAvailable) return;
-                try { PlatformUninit(); } catch { }
-                IsAvailable = false;
+                if (_disposed) return;
+                _disposed = true;
+                if (IsAvailable)
+                {
+                    try { _platformUninit(); } catch { }
+                    IsAvailable = false;
+                }
+                if (_module != IntPtr.Zero)
+                {
+                    try { FreeLibrary(_module); } catch { }
+                }
             }
         }
     }
