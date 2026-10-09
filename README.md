@@ -1,3 +1,4 @@
+Based on Diorser/LiteMonitor, MIT License
 [English](./README.en.md)
 
 # <img src="./resources/screenshots/logo.png"  width="28" style="vertical-align: middle; margin-top: -4px;" /> LiteMonitor
@@ -6,15 +7,12 @@
 A lightweight and customizable desktop hardware monitoring tool — real-time monitoring of system performance such as CPU, GPU, memory, disk, and network.
 
 支持横/竖屏/任务栏/网页显示、主题切换、多语言、透明度显示、三色报警等，界面简洁且高度可配置 。
-> 🟢 **立即下载最新版本：** [📦 GitHub Releases → LiteMonitor 最新版](https://github.com/Diorser/LiteMonitor/releases/latest)    /  [⏬国内镜像网站下载](https://litemonitor.cn/)    
+> 🟢 **立即下载最新版本：** [📦 GitHub Releases → SafeMonitor 最新版](https://github.com/YourKlc/SafeMonitor/releases/latest)
 
-> 🟢 已支持【内存清理】和【自定义插件】功能，详见：[插件开发指南（无需编程）](./resources/plugins/PLUGIN_DEV_GUIDE.md#🔌-plugin-system)
-
-
-![LiteMonitor 主界面](./resources/screenshots/overview.png)
+![SafeMonitor 主界面](./resources/screenshots/overview.png)
 
 ###  🟢 横条模式 / 任务栏显示模式
-![LiteMonitor 横屏/任务栏显示](./resources/screenshots/overview3.png)
+![SafeMonitor 横屏/任务栏显示](./resources/screenshots/overview3.png)
 
 
 # 🖥️ 系统监控功能
@@ -27,30 +25,12 @@ A lightweight and customizable desktop hardware monitoring tool — real-time mo
 | 🔋 **电池（Battery）** | 监测电池状态（充电状态、电量、功耗、电流、电压等）。 |
 | 📀 **磁盘（Disk）**   | 监控磁盘读取与写入速度（KB/s、MB/s），帮助分析存储 I/O 活跃情况。支持自动/手动选择磁盘。 |
 | 🌐 **网络（Network）** | 实时显示上传与下载速度（KB/s、MB/s），提供轻量级网络流量监控。支持自动/手动选择网卡。 |
-| 📈 **流量统计（Traffic）** | 统计每日上传与下载流量，帮助分析网络使用习惯。 |
-| 🔌 **插件系统（Plugin）** | 支持监控天气、股票、加密货币、代理延迟、汇率等，支持自定义插件，扩展监控项与功能。 |
+| 📈 **流量统计（Traffic）** | 统计每日上传与下载流量，帮助分析网络使用习惯。 | 
 | 🔧 **硬件传感器（Sensors）** | 硬件详情面板可以查看和监控所有系统硬件传感器数据。 |
 
+> 💡 SafeMonitor 持续完善中，如需更多监控项或功能支持，欢迎在 [GitHub Issues](https://github.com/YourKlc/SafeMonitor/issues) 中反馈建议！
 
-
-> 💡 LiteMonitor 持续完善中，如需更多监控项或功能支持，欢迎在 [GitHub Issues](https://github.com/Diorser/LiteMonitor/issues) 中反馈建议！
-
----
-
-###  🟢 网络测速功能 
-![LiteMonitor 网速测试](./resources/screenshots/overview4.png)  👉 ![LiteMonitor 菜单](./resources/screenshots/overview5.jpg)
-
-
-###  🟢 监控历史
-![LiteMonitor 监控历史](./resources/screenshots/overview9.png)
-
-###  🟢 历史流量统计
-![LiteMonitor 主题编辑器](./resources/screenshots/overview7.png)
-
-###  🟢 网页版监控
-![LiteMonitor 网页版监控](./resources/screenshots/web.png)
- 
----
+--- 
 
 # 产品功能
 
@@ -78,8 +58,8 @@ A lightweight and customizable desktop hardware monitoring tool — real-time mo
 
 ## 📦 安装与使用
 
-1. 前往 [Releases 页面](https://github.com/Diorser/LiteMonitor/releases) 下载最新版压缩包  
-2. 解压后运行 `LiteMonitor.exe`  
+1. 前往 [Releases 页面](https://github.com/YourKlc/SafeMonitor/releases) 下载最新版压缩包  
+2. 解压后运行 `SafeMonitor.exe`  
 3. 程序会自动根据系统语言加载对应语言文件
 
 ---
@@ -145,8 +125,7 @@ A lightweight and customizable desktop hardware monitoring tool — real-time mo
 | `ThemeManager.cs` | 主题加载、颜色解析、字体构建 |
 | `LanguageManager.cs` | 多语言加载、扁平化 Key 访问 |
 | `HardwareMonitor.cs` | 采集 CPU/GPU/MEM/NET/DISK 信息；自动/手动设备选择 |
-| `AutoStart.cs` | 管理计划任务，实现开机自启 |
-| `UpdateChecker.cs` | GitHub + 国内双源版本检测 |
+| `AutoStart.cs` | 管理计划任务，实现开机自启 | 
 | `AboutForm.cs` | 关于窗口 |
 
 ---
@@ -160,14 +139,14 @@ A lightweight and customizable desktop hardware monitoring tool — real-time mo
 
 ### 编译命令
 ```bash
-git clone https://github.com/Diorser/LiteMonitor.git
-cd LiteMonitor
+git clone https://github.com/YourKlc/SafeMonitor.git
+cd SafeMonitor
 dotnet build -c Release
 ```
 
 输出文件：
 ```
-/bin/Release/net8.0-windows/LiteMonitor.exe
+/bin/Release/net8.0-windows/SafeMonitor.exe
 ```
 
 ---
@@ -178,5 +157,5 @@ dotnet build -c Release
 ---
 
 ## 📬 联系方式
-**作者**：Diorser  
-**项目主页**：[https://github.com/Diorser/LiteMonitor](https://github.com/Diorser/LiteMonitor)
+**作者**：YourKlc
+**项目主页**：[https://github.com/YourKlc/SafeMonitor](https://github.com/YourKlc/SafeMonitor)
