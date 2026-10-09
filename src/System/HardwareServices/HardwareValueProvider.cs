@@ -15,7 +15,6 @@ namespace LiteMonitor.src.SystemServices
         private readonly SensorMap _sensorMap;
         private readonly NetworkManager _networkManager;
         private readonly DiskManager _diskManager;
-        private readonly FpsCounter _fpsCounter;
         private readonly object _lock;
         private readonly Dictionary<string, float> _lastValidMap; 
         
@@ -41,14 +40,13 @@ namespace LiteMonitor.src.SystemServices
         private string _lastPrefNet = "";
         private string _lastPrefGpu = "";
         
-        public HardwareValueProvider(Computer c, Settings s, SensorMap map, NetworkManager net, DiskManager disk, FpsCounter fpsCounter,PerformanceCounterManager perfManager, object syncLock, Dictionary<string, float> lastValid)
+        public HardwareValueProvider(Computer c, Settings s, SensorMap map, NetworkManager net, DiskManager disk, PerformanceCounterManager perfManager, object syncLock, Dictionary<string, float> lastValid)
         {
             _computer = c;
             _cfg = s;
             _sensorMap = map;
             _networkManager = net;
             _diskManager = disk;
-            _fpsCounter = fpsCounter;
             _perfManager = perfManager;
             _lock = syncLock;
             _lastValidMap = lastValid;
@@ -330,14 +328,6 @@ namespace LiteMonitor.src.SystemServices
                         if (result == null) result = 0f;
                         break;
 
-                    // 4. 每日流量
-                    case "DATA.DayUp":
-                        result = TrafficLogger.GetTodayStats().up;
-                        break;
-                    case "DATA.DayDown":
-                        result = TrafficLogger.GetTodayStats().down;
-                        break;
-
                     // 6.1 虚拟内存 (已提交内存，即 物理内存 + 页面文件 的使用量)
                     // 说明：数据源为系统级 Win32 API (GetPerformanceInfo)，与 LHM 传感器无关，
                     // 因此这里不判断 useCounter —— 开关关闭时同样可用。
@@ -441,10 +431,6 @@ namespace LiteMonitor.src.SystemServices
                         {
                             result = ReadMoboTemperature(sMobo);
                         }
-                        break;
-
-                    case "FPS":
-                        result = _fpsCounter.GetFps();
                         break;
 
                     // 电池

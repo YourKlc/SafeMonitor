@@ -308,9 +308,7 @@ namespace LiteMonitor.src.UI.Helpers
             {
                 case 1: OpenTaskManager(); break;
                 case 2: OpenSettings(); break;
-                case 3: OpenTrafficHistory(); break;
-                case 4: CleanMemory(); break;
-                case 5: WebActions.OpenWebMonitor(_cfg); break;
+                case 3: CleanMemory(); break;
                 case 0: default: ToggleLayoutMode(); break;
             }
         }
@@ -326,12 +324,6 @@ namespace LiteMonitor.src.UI.Helpers
             new SettingsForm(_cfg, _ui, (MainForm)_form).Show();
         }
 
-        public void OpenTrafficHistory()
-        {
-            foreach (Form f in Application.OpenForms) { if (f is TrafficHistoryForm) { f.Activate(); return; } }
-            new TrafficHistoryForm(_cfg).Show();
-        }
-
         public async void CleanMemory()
         {
             try { using (var form = new CleanMemoryForm()) await form.StartCleaningAsync(); } catch { }
@@ -344,7 +336,6 @@ namespace LiteMonitor.src.UI.Helpers
         {
             try
             {
-                if (HardwareMonitor.Instance != null) await HardwareMonitor.Instance.SmartCheckDriver();
                 await UpdateChecker.CheckAsync();
                 CheckUpdateSuccess();
 
@@ -368,7 +359,7 @@ namespace LiteMonitor.src.UI.Helpers
             if (File.Exists(tokenPath))
             {
                 try { File.Delete(tokenPath); } catch { }
-                string title = "⚡️LiteMonitor_v" + UpdateChecker.GetCurrentVersion();
+                string title = "⚡️SafeMonitor_v" + UpdateChecker.GetCurrentVersion();
                 string content = _cfg.Language == "zh" ? "🎉 软件已成功更新到最新版本！" : "🎉 Software updated to latest version!";
                 ShowNotification(title, content, ToolTipIcon.Info);
             }

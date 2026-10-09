@@ -26,8 +26,6 @@ namespace LiteMonitor.src.SystemServices
         private readonly SensorMap _sensorMap;
         private readonly NetworkManager _networkManager;
         private readonly DiskManager _diskManager;
-        private readonly FpsCounter _fpsCounter;
-        private readonly DriverInstaller _driverInstaller;
         private readonly HardwareValueProvider _valueProvider;
 
         // 性能计数器管理器
@@ -59,29 +57,21 @@ namespace LiteMonitor.src.SystemServices
             Instance = this;
 
             // 1. 初始化 Computer
+            // ★★★ 用户态采集（不使用任何内核驱动）★★★
+            // - CPU 温度/电压/功耗、主板/SuperIO、风扇/水泵、磁盘 SMART 均需内核驱动，相关节点已禁用。
+            // - CPU 负载/频率、内存、磁盘读写、网络 均走 Windows 性能计数器（无需内核驱动）。
+            // - GPU 走官方用户态 SDK (NVIDIA NVAPI / AMD ADL / Intel IGCL)。
+            // - 电池 走 Windows 电源 API。
             _computer = new Computer()
             {
-                // ★★★ 修正：强制开启 CPU ★★★
-                // 必须始终为 true。如果依赖 IsAnyEnabled("")，当用户未开启任何 CPU 监控项时，
-                // LHM 将不会初始化 CPU 节点。后续即使通过热切换开启了风扇监控，
-                // 由于 RefreshHardwareConfig 仅切换 IsControllerEnabled 而不更新 IsCpuEnabled，
-                // 依然无法读取到依赖 CPU 节点的传感器数据。
-                IsCpuEnabled = true, 
-                
+                IsCpuEnabled = false,
                 IsGpuEnabled = true,
                 IsMemoryEnabled = true,
                 IsNetworkEnabled = true,
-                IsStorageEnabled = true,
-                IsMotherboardEnabled = true,
-                
-                // ★★★ 优化 T0：动态开启控制器扫描 ★★★
-                // 默认关闭以避免 USB 冲突，仅当需要风扇/水泵时开启
-                IsControllerEnabled = ShouldEnableController(), 
-
-                // 开启电池监控
+                IsStorageEnabled = false,
+                IsMotherboardEnabled = false,
+                IsControllerEnabled = false,
                 IsBatteryEnabled = true,
-
-                // 顺便确保 PSU 也关闭（通常不需要监控电源模块，除非是高端 Corsair 电源）
                 IsPsuEnabled = false
             };
 
@@ -92,19 +82,15 @@ namespace LiteMonitor.src.SystemServices
             _sensorMap = new SensorMap();
             _networkManager = new NetworkManager(_perfCounterManager);
             _diskManager = new DiskManager();
-            _driverInstaller = new DriverInstaller(cfg, ReloadComputerSafe, ReleaseComputerForDriverInstall);
-            _fpsCounter = new FpsCounter(_driverInstaller); // <--- 新增
 
-            // ★★★ [修改] 2. 将 Manager 注入给 ValueProvider ★★★
             _valueProvider = new HardwareValueProvider(
-                _computer, 
-                cfg, 
-                _sensorMap, 
-                _networkManager, 
-                _diskManager, 
-                _fpsCounter, 
-                _perfCounterManager, 
-                _lock, 
+                _computer,
+                cfg,
+                _sensorMap,
+                _networkManager,
+                _diskManager,
+                _perfCounterManager,
+                _lock,
                 _lastValidMap
             );
 
@@ -121,47 +107,6 @@ namespace LiteMonitor.src.SystemServices
         }
 
         public string GetNetworkIP() => _networkManager.GetCurrentIP();
-
-        // ★★★ 新增：允许主程序手动触发驱动检查 (用于解决启动弹窗冲突) ★★★
-        public Task SmartCheckDriver() => _driverInstaller.SmartCheckDriver();
-
-        // ★★★ [新增] 动态刷新硬件配置 (热切换) ★★★
-        public void RefreshHardwareConfig()
-        {
-            // 1. 计算期望状态
-            bool targetState = ShouldEnableController();
-
-            // 2. 检查当前状态 (无需加锁，bool读写原子且 IsControllerEnabled 只是个属性)
-            bool currentState = _computer.IsControllerEnabled;
-
-            // 3. 如果状态一致，无需操作
-            if (targetState == currentState) return;
-
-            // ★★★ [需求变更] 关闭风扇/水泵不需要重载，仅首次开启时重载 ★★★
-            // 避免关闭监控项时触发重载导致软件短暂卡顿或设备重连
-            // 如果当前已开启 (true) 且目标是关闭 (false)，则保持开启状态，不执行重载
-            if (currentState && !targetState)
-            {
-                System.Diagnostics.Debug.WriteLine($"[HotSwap] Controller disable requested but ignored to avoid reload (Latch Mode).");
-                return;
-            }
-
-            // 4. 状态变更 (False -> True)，触发异步重载
-            System.Diagnostics.Debug.WriteLine($"[HotSwap] Controller State Change: {currentState} -> {targetState}");
-
-            // Fire-and-forget 异步任务，避免阻塞 UI
-            Task.Run(() =>
-            {
-                // 更新配置属性
-                _computer.IsControllerEnabled = targetState;
-
-                // 触发安全重载
-                // 由于 ReloadComputerSafe 全程持有 _lock，
-                // 而 UpdateAll 和 GetValue 都改用了 TryEnter，
-                // 所以这里会独占 _lock 几秒钟，期间 UI 不会卡死（只会显示空数据）。
-                ReloadComputerSafe();
-            });
-        }
 
         public void UpdateAll()
         {
@@ -291,7 +236,6 @@ namespace LiteMonitor.src.SystemServices
 
             _valueProvider.Dispose();
             _perfCounterManager.Dispose(); // ★★★ [新增] 释放计数器资源 ★★★
-            _fpsCounter.Dispose(); // <--- 新增
             _networkManager.ClearCache();
             _diskManager.ClearCache(); // 漏掉的，补上
         }
@@ -350,17 +294,6 @@ namespace LiteMonitor.src.SystemServices
                     _isOpening = false;
                 }
             });
-        }
-
-        // ★★★ [新增] 动态判断是否需要开启控制器 ★★★
-        private bool ShouldEnableController()
-        {
-            // 检查是否开启了任何需要读取外部控制器的监控项。
-            // 主板温度走 Motherboard/SuperIO 硬件树，不应该因此打开 Controller 扫描。
-            if (_cfg.IsAnyEnabled("CPU.Fan")) return true;
-            if (_cfg.IsAnyEnabled("CPU.Pump")) return true;
-            if (_cfg.IsAnyEnabled("CASE.Fan")) return true;
-            return false;
         }
 
         private void WarmUpMotherboardSensors()
@@ -423,9 +356,8 @@ namespace LiteMonitor.src.SystemServices
             // 1. 获取计数器状态
             bool useCounter = _cfg.UseWinPerCounters && _perfCounterManager.IsInitialized;
             
-            // ★★★ [优化] 全量更新判断 ★★★
-            // 如果开启了 WebServer，则需要强制更新所有硬件，因为网页端可能会查看主界面未开启的项目
-            bool forceAll = _cfg.WebServerEnabled;
+            // 无强制全量更新需求（已移除网页端监控）
+            bool forceAll = false;
 
             // 2. CPU: 总是需要 (因为 LHM 要读温度)
             bool needCpu = forceAll || _cfg.IsAnyEnabled("CPU");
@@ -501,33 +433,6 @@ namespace LiteMonitor.src.SystemServices
                 // 4. 优化 T1：重置后再次修剪内存
                 GC.Collect();
                 SystemOptimizer.TrimWorkingSet();
-            }
-            catch { }
-        }
-
-        private void ReleaseComputerForDriverInstall()
-        {
-            try
-            {
-                lock (_lock)
-                {
-                    _networkManager.ClearCache();
-                    _diskManager.ClearCache();
-                    _sensorMap.Clear();
-                    _valueProvider.ClearCache();
-                    HardwareScanner.ClearCache();
-
-                    try
-                    {
-                        _computer.Accept(new HardwareVisitor(h => { }));
-                        _computer.Close();
-                        _computer.Hardware.Clear();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[DriverInstaller] 释放硬件监控失败: {ex.Message}");
-                    }
-                }
             }
             catch { }
         }

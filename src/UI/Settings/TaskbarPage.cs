@@ -137,13 +137,11 @@ namespace LiteMonitor.src.UI.SettingsPage
             );
 
             // Double Click Action
-            string[] actions = { 
+            string[] actions = {
                 LanguageManager.T("Menu.ActionToggleVisible"),
-                LanguageManager.T("Menu.ActionTaskMgr"), 
+                LanguageManager.T("Menu.ActionTaskMgr"),
                 LanguageManager.T("Menu.ActionSettings"),
-                LanguageManager.T("Menu.ActionTrafficHistory"),
-                LanguageManager.T("Menu.CleanMemory"),
-                LanguageManager.T("Menu.OpenWeb")
+                LanguageManager.T("Menu.CleanMemory")
             };
             group.AddComboIndex(this, "Menu.DoubleClickAction", actions,
                 () => Config?.TaskbarDoubleClickAction ?? 0,

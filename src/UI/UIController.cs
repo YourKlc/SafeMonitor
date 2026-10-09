@@ -230,8 +230,6 @@ namespace LiteMonitor
                 foreach (var col in _hxColsHorizontal) UpdateCol(col);
                 foreach (var col in _hxColsTaskbar) UpdateCol(col);
 
-                HardwareHistoryLogger.RecordSnapshot(_cfg, key => _mon.Get(key));
- 
                 CheckTemperatureAlert();
 
                 // 驱动 DashboardService 更新

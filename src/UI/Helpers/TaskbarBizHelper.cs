@@ -255,17 +255,10 @@ namespace LiteMonitor.src.UI.Helpers
                     foreach (Form f in Application.OpenForms) { if (f is SettingsForm) { f.Activate(); return; } }
                     new SettingsForm(_cfg, ui, mainForm).Show(); 
                     break;
-                case 3: 
-                    foreach (Form f in Application.OpenForms) { if (f is TrafficHistoryForm) { f.Activate(); return; } }
-                    new TrafficHistoryForm(_cfg).Show(); 
+                case 3:
+                    try { using (var form = new CleanMemoryForm()) await form.StartCleaningAsync(); } catch { }
                     break;
-                case 4: 
-                    try { using (var form = new CleanMemoryForm()) await form.StartCleaningAsync(); } catch { } 
-                    break;
-                case 5:
-                    Core.Actions.WebActions.OpenWebMonitor(_cfg);
-                    break;
-                case 0: 
+                case 0:
                 default:
                     if (mainForm.Visible) mainForm.HideMainWindow(); else mainForm.ShowMainWindow();
                     break;

@@ -17,8 +17,8 @@ namespace LiteMonitor
             bool isZh = LanguageManager.CurrentLang == "zh";
 
             string strTitle = LanguageManager.T("Menu.About");
-            string strDesc = isZh ? "一款开源的轻量级硬件监控软件。\n© 2025 Diorser / LiteMonitor Project" 
-                                  : "A lightweight desktop hardware monitor.\n© 2025 Diorser / LiteMonitor Project";
+            string strDesc = isZh ? "一款开源的轻量级硬件监控软件。\n© 2025 YourKlc / SafeMonitor"
+                                  : "A lightweight desktop hardware monitor.\n© 2025 YourKlc / SafeMonitor";
             string strWebPrefix = isZh ? "官网" : "Website";
             string strUpdate = LanguageManager.T("Menu.CheckUpdate");
             string strClose = LanguageManager.T("Menu.OK");
@@ -43,7 +43,7 @@ namespace LiteMonitor
             // === 标题 ===
             var lblTitle = new Label
             {
-                Text = "⚡️LiteMonitor",
+                Text = "⚡️SafeMonitor",
                 Font = new Font(theme.Font.Family, 14, FontStyle.Bold),
                 ForeColor = ThemeManager.ParseColor(theme.Color.TextTitle),
                 AutoSize = true,
@@ -79,7 +79,7 @@ namespace LiteMonitor
             // === 官网链接 ===
             var websiteLink = new LinkLabel
             {
-                Text = $"{strWebPrefix}: LiteMonitor.cn",
+                Text = $"{strWebPrefix}: github.com/YourKlc/SafeMonitor",
                 LinkColor = Color.SkyBlue,
                 ActiveLinkColor = Color.LightSkyBlue,
                 VisitedLinkColor = Color.DeepSkyBlue,
@@ -90,16 +90,16 @@ namespace LiteMonitor
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo("https://LiteMonitor.cn")
+                    Process.Start(new ProcessStartInfo("https://github.com/YourKlc/SafeMonitor")
                     { UseShellExecute = true });
                 }
                 catch { }
             };
 
-            // === GitHub 链接 ===
+            // === 更新/发布页链接 ===
             var githubLink = new LinkLabel
             {
-                Text = "GitHub: github.com/Diorser/LiteMonitor",
+                Text = "GitHub Releases: github.com/YourKlc/SafeMonitor/releases",
                 LinkColor = Color.SkyBlue,
                 ActiveLinkColor = Color.LightSkyBlue,
                 VisitedLinkColor = Color.DeepSkyBlue,
@@ -110,7 +110,7 @@ namespace LiteMonitor
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo("https://github.com/Diorser/LiteMonitor")
+                    Process.Start(new ProcessStartInfo("https://github.com/YourKlc/SafeMonitor/releases")
                     { UseShellExecute = true });
                 }
                 catch { }
@@ -135,7 +135,7 @@ namespace LiteMonitor
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo("https://github.com/Diorser/LiteMonitor/issues")
+                    Process.Start(new ProcessStartInfo("https://github.com/YourKlc/SafeMonitor/issues")
                     { UseShellExecute = true });
                 }
                 catch { }

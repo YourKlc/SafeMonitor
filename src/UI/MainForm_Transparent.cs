@@ -68,7 +68,6 @@ namespace LiteMonitor
         // 供外部调用
         public void OpenTaskManager() => _bizHelper.OpenTaskManager();
         public void OpenSettings() => _bizHelper.OpenSettings();
-        public void OpenTrafficHistory() => _bizHelper.OpenTrafficHistory();
         public void CleanMemory() => _bizHelper.CleanMemory();
 
         // ==== 任务栏显示 ====
@@ -133,12 +132,7 @@ namespace LiteMonitor
             // ★★★ Fix: 初始化全局 DPI 缩放系数，防止未打开设置面板时弹窗排版异常 ★★★
             UIUtils.ScaleFactor = this.DeviceDpi / 96f;
 
-            TrafficLogger.Load();
-            HardwareHistoryLogger.Load();
-            src.Plugins.PluginManager.Instance.LoadPlugins(Path.Combine(AppContext.BaseDirectory, "resources", "plugins"));
-            src.Plugins.PluginManager.Instance.Start();
             _ui = new UIController(_cfg, this);
-            new src.WebServer.LiteWebServer(_cfg);
 
             // 5. 设置背景色 (这是关键！解耦时漏掉了这行，导致背景是系统默认色而非透明或皮肤色)
             BackColor = ThemeManager.ParseColor(ThemeManager.Current.Color.Background);
@@ -318,17 +312,7 @@ namespace LiteMonitor
 
             if (_cfg.ShowTaskbar) ToggleTaskbar(true);
 
-            // 启动 WebServer
-            if (_cfg.WebServerEnabled)
-            {
-                if (src.WebServer.LiteWebServer.Instance?.Start(out string err) == false)
-                {
-                     ShowNotification("WebServer Error", 
-                         (_cfg.Language == "zh" ? "Web服务启动失败: " : "Web Server Failed: ") + err, 
-                         ToolTipIcon.Error);
-                }
-            }
-            // 这样既检查了驱动，也检查了更新，以及置顶 透明度 穿透 等，而且时机完美（窗口显示后）
+            // 检查更新，以及置顶 透明度 穿透 等，而且时机完美（窗口显示后）
             if (_bizHelper != null)
             {
                  _ = _bizHelper.RunStartupChecksAsync();
@@ -346,11 +330,8 @@ namespace LiteMonitor
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            _cfg.Save(); 
-            TrafficLogger.Save(); 
-            HardwareHistoryLogger.Save();
-            src.WebServer.LiteWebServer.Instance?.Stop();
-            
+            _cfg.Save();
+
             base.OnFormClosed(e);
             
             _ui?.Dispose();

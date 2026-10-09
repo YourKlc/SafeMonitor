@@ -1,0 +1,31 @@
+# 用户特定文件
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vs
+
+# 编译输出目录
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+# VS 缓存目录
+vs/
+# 测试结果
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+# NuGet 包
+*.nupkg
+**/packages/*
+!**/packages/build/
+# 发布配置
+*.pubxml
+*.publishproj
+# 其他常见忽略项
+node_modules/
+*.pdb
+*.tmp

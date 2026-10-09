@@ -50,13 +50,6 @@ namespace LiteMonitor.src.Core.Actions
                     UpdateMonitorList(live, draft.MonitorItems, draft.HorizontalFollowsTaskbar);
                     continue;
                 }
-                if (p.Name == "PluginInstances")
-                {
-                    // 使用 JSON 序列化进行深拷贝，断开引用
-                    var json = System.Text.Json.JsonSerializer.Serialize(draft.PluginInstances);
-                    live.PluginInstances = System.Text.Json.JsonSerializer.Deserialize<List<PluginInstanceConfig>>(json) ?? new List<PluginInstanceConfig>();
-                    continue;
-                }
                 if (p.Name == "Thresholds")
                 {
                     // 阈值是 Class 类型 (ThresholdsSet)，必须深拷贝
@@ -152,24 +145,6 @@ namespace LiteMonitor.src.Core.Actions
             }
 
             draft.MonitorItems = newItems;
-        }
-        
-        /// <summary>
-        /// 向设置中添加新的插件实例。
-        /// </summary>
-        public static void AddPlugin(Settings target, PluginInstanceConfig plugin)
-        {
-            if (target == null || plugin == null) return;
-            target.PluginInstances.Add(plugin);
-        }
-
-        /// <summary>
-        /// 从设置中移除插件实例。
-        /// </summary>
-        public static void RemovePlugin(Settings target, PluginInstanceConfig plugin)
-        {
-            if (target == null || plugin == null) return;
-            target.PluginInstances.Remove(plugin);
         }
     }
 }

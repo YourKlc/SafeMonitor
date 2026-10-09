@@ -60,14 +60,6 @@ namespace LiteMonitor.src.UI.SettingsPage
 
             AddGroupToPage(grpNet);
 
-            // === 4. Data Usage ===
-            var grpData = new LiteSettingsGroup(LanguageManager.T("Menu.DailyTraffic"));
-
-            grpData.AddThreshold(this, LanguageManager.T("Items.DATA.DayUp"), "MB", Config.Thresholds.DataUpMB);
-            grpData.AddThreshold(this, LanguageManager.T("Items.DATA.DayDown"), "MB", Config.Thresholds.DataDownMB);
-
-            AddGroupToPage(grpData);
-
             _container.ResumeLayout();
             _isLoaded = true;
         }

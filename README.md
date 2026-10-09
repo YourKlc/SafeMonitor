@@ -1,7 +1,9 @@
 Based on Diorser/LiteMonitor, MIT License
 [English](./README.en.md)
 
-# <img src="./resources/screenshots/logo.png"  width="28" style="vertical-align: middle; margin-top: -4px;" /> LiteMonitor
+> ⚠️ 核心方向：不使用任何内核驱动、仅保留用户态可采集的监控项、更新源只走 GitHub Releases。
+
+# <img src="./resources/screenshots/logo.png"  width="28" style="vertical-align: middle; margin-top: -4px;" /> SafeMonitor
 一款轻量、可定制的开源桌面硬件监控软件 — 实时监测 CPU、GPU、内存、磁盘、网络等系统性能。
 
 A lightweight and customizable desktop hardware monitoring tool — real-time monitoring of system performance such as CPU, GPU, memory, disk, and network.
@@ -42,15 +44,12 @@ A lightweight and customizable desktop hardware monitoring tool — real-time mo
 | 📊 监控项显示管理 | 按需显示或隐藏 CPU、GPU、VRAM、内存、磁盘、网络等模块。 |
 | 🧮 **横屏模式** | 全新横条布局，支持每列独立宽度、单位智能格式化、两行显示、自动计算面板宽度。 |
 | 📏 面板宽度调整 | 即时调整面板宽度，布局自动重排。 |
-| 🔠 **UI 缩放** | 自适应 DPI + 用户自定义缩放，界面与字体完美比例缩放。 |
 | 🎞️ **动画平滑** | 数值更新支持平滑动画，降低突变带来的跳动感，可自行调节速度。 |
 | 🪟 窗口与界面 | 圆角显示、透明度调节、阴影、高质量字体渲染，视觉干净优雅。 |
 | 🧭 靠边自动隐藏 | 靠屏幕边缘自动收起，靠近边缘自动弹出，支持多屏幕正确判断。 |
 | 🧲 **限制拖出屏幕** | 选项开启后，窗口不可拖出屏幕可视区域。 |
 | 👆 鼠标穿透模式 | 启用后，窗口不拦截鼠标事件，可直接操作背后应用。 |
 | 🎨 UI 与主题即时切换 | 切换主题/语言后界面即时刷新，无需重启。 |
-| 🔍 数值智能格式化 | 自动格式化单位与小数位，横屏模式支持智能“/s”去除、>=100 自动取整等。 |
-| 🔄 自动更新检测 | 启动时静默检查新版本，手动检查时展示弹窗。支持国内与 GitHub 双源。 |
 | 🚀 开机自启 | 通过计划任务方式实现管理员级别自启动。 |
 | 📂 配置文件存储 | 所有设置实时写入 `settings.json`，支持迁移与备份。 |
 

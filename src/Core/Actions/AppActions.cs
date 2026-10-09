@@ -3,8 +3,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using LiteMonitor.src.UI;
 using LiteMonitor.src.SystemServices;
-using LiteMonitor.src.WebServer; // ★★★ 引用 WebServer 命名空间 ★★★
-using LiteMonitor.src.Plugins;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -40,13 +38,7 @@ namespace LiteMonitor.src.Core.Actions
             ApplyMonitorLayout(ui, mainForm); // 监控项、硬件源变更
             ApplyTaskbarStyle(cfg, ui);       // 任务栏样式
 
-            // ★★★ 5. [新增] 应用网页服务设置 (重启服务以应用端口变更) ★★★
-            ApplyWebServer(cfg);
-
-            // 6. 应用插件设置 (重载实例并清除缓存)
-            PluginManager.Instance.Reload(cfg);
-
-            // 7. 可见性 (最后执行，避免闪烁)
+            // 5. 可见性 (最后执行，避免闪烁)
             ApplyVisibility(cfg, mainForm);
         }
 
@@ -179,10 +171,6 @@ namespace LiteMonitor.src.Core.Actions
 
         public static void ApplyMonitorLayout(UIController? ui, MainForm form, bool rebuildMenus = true)
         {
-            // ★★★ [新增] 动态检查硬件开启需求 (热切换) ★★★
-            // 如果用户开启了风扇/水泵，自动开启 USB 控制器；反之关闭
-            HardwareMonitor.Instance?.RefreshHardwareConfig();
-
             // 重新计算哪些格子要显示 (主界面和任务栏的数据列都会重建)
             ui?.RebuildLayout();
             
@@ -209,44 +197,6 @@ namespace LiteMonitor.src.Core.Actions
             
             // 如果样式影响了主程序计算（极少情况），可解开下面注释
             ui?.ApplyTheme(cfg.Skin); 
-        }
-
-        // =============================================================
-        // 7. 网页服务 (新增逻辑)
-        // =============================================================
-        public static void ApplyWebServer(Settings cfg)
-        {
-            var server = LiteWebServer.Instance;
-            if (server != null)
-            {
-                bool shouldRun = cfg.WebServerEnabled;
-                bool isRunning = server.IsRunning;
-                int targetPort = cfg.WebServerPort;
-                int currentPort = server.CurrentRunningPort;
-                string targetPwd = cfg.WebServerPassword;
-                string currentPwd = server.CurrentPassword;
-
-                if (shouldRun)
-                {
-                    // 端口变更 或 密码变更 均触发重启
-                    if (!isRunning || targetPort != currentPort || targetPwd != currentPwd)
-                    {
-                        server.Stop();
-                        if (!server.Start(out string err))
-                        {
-                            System.Diagnostics.Debug.WriteLine("WebServer restart failed: " + err);
-                        }
-                    }
-                }
-                else
-                {
-                    // 如果需要关闭，且当前正在运行 -> 关闭
-                    if (isRunning)
-                    {
-                        server.Stop();
-                    }
-                }
-            }
         }
 
         // --- 内部辅助 ---

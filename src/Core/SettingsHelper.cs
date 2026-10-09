@@ -164,15 +164,9 @@ namespace LiteMonitor
                 new MonitorItemConfig { Key = "DASH.Uptime", SortIndex = 103, TaskbarSortIndex = 1300, VisibleInPanel = true, TaskbarLabel = " " },
                 new MonitorItemConfig { Key = "DASH.IP",   SortIndex = 104, TaskbarSortIndex = 1400, VisibleInPanel = false, TaskbarLabel = " " },
                
-                // [2xx] CPU
+                // [2xx] CPU (负载/频率走性能计数器；温度/电压/功耗/风扇需内核驱动，已移除)
                 new MonitorItemConfig { Key = "CPU.Load",  SortIndex = 201, VisibleInPanel = true, VisibleInTaskbar = true },
-                new MonitorItemConfig { Key = "CPU.Temp",  SortIndex = 202, VisibleInPanel = true, VisibleInTaskbar = true },
                 new MonitorItemConfig { Key = "CPU.Clock", SortIndex = 203, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "CPU.Power", SortIndex = 204, VisibleInPanel = false },
-                // [New] CPU Voltage
-                new MonitorItemConfig { Key = "CPU.Voltage", SortIndex = 205, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "CPU.Fan",   SortIndex = 206, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "CPU.Pump",  SortIndex = 207, VisibleInPanel = false },
 
                 // [3xx] GPU
                 new MonitorItemConfig { Key = "GPU.Load",  SortIndex = 301, VisibleInPanel = true, VisibleInTaskbar = true },
@@ -186,11 +180,7 @@ namespace LiteMonitor
                 new MonitorItemConfig { Key = "MEM.Load",  SortIndex = 401, VisibleInPanel = true, VisibleInTaskbar = true },
                 // [New] 虚拟内存 (已提交内存)：默认不显示，用户可在 [监控项显示] 页面勾选
                 new MonitorItemConfig { Key = "MEM.Virtual", SortIndex = 402, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "FPS",       SortIndex = 403, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "MOBO.Temp", SortIndex = 404, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "DISK.Temp", SortIndex = 405, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "CASE.Fan",  SortIndex = 406, VisibleInPanel = false },
-                
+
                 // [5xx] BATTERY (New Group)
                 new MonitorItemConfig { Key = "BAT.Percent", SortIndex = 501, VisibleInPanel = false, VisibleInTaskbar = false },
                 new MonitorItemConfig { Key = "BAT.Power",   SortIndex = 502, VisibleInPanel = false },
@@ -204,10 +194,6 @@ namespace LiteMonitor
                 // [7xx] NET
                 new MonitorItemConfig { Key = "NET.Up",    SortIndex = 701, VisibleInPanel = true, VisibleInTaskbar = true },
                 new MonitorItemConfig { Key = "NET.Down",  SortIndex = 702, VisibleInPanel = true, VisibleInTaskbar = true },
-
-                // [8xx] DATA
-                new MonitorItemConfig { Key = "DATA.DayUp",  SortIndex = 801, VisibleInPanel = true },
-                new MonitorItemConfig { Key = "DATA.DayDown",SortIndex = 802, VisibleInPanel = true },
             };
         }
         // [Sync] 同步到语言设置

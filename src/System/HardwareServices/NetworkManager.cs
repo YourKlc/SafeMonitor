@@ -422,7 +422,6 @@ namespace LiteMonitor.src.SystemServices
             {
                 cfg.SessionUploadBytes += finalUp;
                 cfg.SessionDownloadBytes += finalDown;
-                TrafficLogger.AddTraffic(finalUp, finalDown);
             }
         }
 

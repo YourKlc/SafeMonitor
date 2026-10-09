@@ -86,26 +86,10 @@ namespace LiteMonitor
             {
                 // ★★★ 3. 启动应用 ★★★
                 ApplicationConfiguration.Initialize();
-                if (!DriverInstaller.CheckPawnIOBeforeHardware(Settings.Load()))
-                {
-                    return;
-                }
-
                 Application.Run(new MainForm());
             }
             finally
             {
-                // =================================================================
-                // ★★★ [新增] 退出时的终极清理 ★★★
-                // 无论程序是正常关闭、崩溃还是被强制结束(部分情况)，这里都会尝试执行
-                // 确保 FPS 进程被杀掉，且 ETW 会话被停止，防止系统卡顿
-                // =================================================================
-                try 
-                {
-                    FpsCounter.ForceKillZombies(); 
-                }
-                catch { }
-
                 // 显式释放锁
                 if (_mutex != null)
                 {

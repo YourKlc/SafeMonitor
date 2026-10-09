@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Drawing;
 using System.Text.Json.Serialization;
 using LiteMonitor.src.Core;
-using LiteMonitor.src.Plugins;
 namespace LiteMonitor
 {
     public class Settings
@@ -140,10 +139,6 @@ namespace LiteMonitor
         public bool AlertTempEnabled { get; set; } = true;
         public int AlertTempThreshold { get; set; } = 80;
 
-        public bool WebServerEnabled { get; set; } = false;
-        public int WebServerPort { get; set; } = 5000; // 默认端口
-        public string WebServerPassword { get; set; } = ""; // 访问密码
-        
         public ThresholdsSet Thresholds { get; set; } = new ThresholdsSet();
 
         [JsonIgnore] public DateTime LastAlertTime { get; set; } = DateTime.MinValue;
@@ -153,7 +148,6 @@ namespace LiteMonitor
 
         public Dictionary<string, string> GroupAliases { get; set; } = new Dictionary<string, string>();
         public List<MonitorItemConfig> MonitorItems { get; set; } = new List<MonitorItemConfig>();
-        public List<PluginInstanceConfig> PluginInstances { get; set; } = new List<PluginInstanceConfig>();
 
         // ★★★ [新增] 极简样式封装（复制到 Settings 类里） ★★★
         public struct TBStyle { 
@@ -180,12 +174,6 @@ namespace LiteMonitor
 
             // 委托给 SettingsHelper 加载
             _instance = SettingsHelper.Load(forceReload);
-            
-            // 兼容旧配置：如果 WebServerPassword 为 null，初始化为空字符串
-            if (_instance.WebServerPassword == null)
-            {
-                _instance.WebServerPassword = "";
-            }
 
             return _instance;
         }
@@ -339,25 +327,5 @@ namespace LiteMonitor
     {
         public double Warn { get; set; } = 0;
         public double Crit { get; set; } = 0;
-    }
-
-    public class PluginInstanceConfig
-    {
-        public string Id { get; set; } = "";
-        public string TemplateId { get; set; } = "";
-        public bool Enabled { get; set; } = false;
-        public int CustomInterval { get; set; } = 0; // 自定义刷新频率 (0 = 使用模版默认)
-        
-        // 全局参数 (Scope="global")
-        public Dictionary<string, string> InputValues { get; set; } = new Dictionary<string, string>();
-        
-        // 目标列表 (Scope="target")
-        // 每个元素是一个 Dictionary，存储该目标的所有 target 参数
-        public List<Dictionary<string, string>> Targets { get; set; } = new List<Dictionary<string, string>>();
-
-        // [Optimization] Runtime key cache to avoid redundant string generation in PluginExecutor
-        // Map: TargetIndex_OutputKey -> KeysBundle
-        [JsonIgnore] 
-        public ConcurrentDictionary<string, PluginOutputKeys> KeyCache { get; } = new ConcurrentDictionary<string, PluginOutputKeys>();
     }
 }

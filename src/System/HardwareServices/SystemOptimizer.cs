@@ -78,12 +78,6 @@ namespace LiteMonitor.src.SystemServices
         /// <param name="secondsCounter">系统运行秒数计数器</param>
         public static void RunMaintenanceTasks(long secondsCounter)
         {
-            // 1. 流量保存: 每 60 秒 (Offset 5s: 避开整点)
-            if (secondsCounter % 60 == 5)
-            {
-                TrafficLogger.Save();
-            }
-
             // 2. 内存软清理: 每 180 秒 (Offset 30s)
             if (secondsCounter % 180 == 30)
             {
