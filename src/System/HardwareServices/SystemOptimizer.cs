@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     /// <summary>
     /// 系统优化器：负责内存清理、性能修剪及后台维护任务

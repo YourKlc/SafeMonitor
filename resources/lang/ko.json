@@ -1,5 +1,5 @@
 {
-  "Title": "⚡️LiteMonitor",
+  "Title": "⚡️SafeMonitor",
   "Groups": {
     "DASH": "ℹ️대시보드",
     "CPU": "💻CPU",
@@ -23,9 +23,6 @@
     "CPU.Temp": "CPU 온도",
     "CPU.Clock": "CPU 클럭",
     "CPU.Power": "CPU 전력",
-    "CPU.Voltage": "CPU 전압",
-    "CPU.Fan": "CPU 팬",
-    "CPU.Pump": "CPU 펌프",
     "GPU.Load": "GPU 사용량",
     "GPU.Temp": "GPU 온도",
     "GPU.VRAM": "VRAM 사용",
@@ -34,16 +31,10 @@
     "GPU.Fan": "GPU 팬",
     "MEM.Load": "메모리 사용",
     "MEM.Virtual": "가상 메모리",
-    "FPS": "FPS",
-    "MOBO.Temp": "메인보드 온도",
-    "CASE.Fan": "케이스 팬",
-    "DISK.Temp": "디스크 온도",
     "DISK.Read": "읽기",
     "DISK.Write": "쓰기",
     "NET.Up": "업로드",
-    "NET.Down": "다운로드",
-    "DATA.DayUp": "금일 업로드",
-    "DATA.DayDown": "금일 다운"
+    "NET.Down": "다운로드"
   },
   "Short": {
     "DASH.HOST": " ",
@@ -58,9 +49,6 @@
     "CPU.Temp": "CPU",
     "CPU.Clock": "CCLK",
     "CPU.Power": "CPWR",
-    "CPU.Voltage": "CVOL",
-    "CPU.Fan": "CFAN",
-    "CPU.Pump": "펌프",
     "GPU.Load": "GPU",
     "GPU.Temp": "GPU",
     "GPU.VRAM": "VRAM",
@@ -69,16 +57,10 @@
     "GPU.Fan": "GFAN",
     "MEM.Load": "MEM",
     "MEM.Virtual": "가상",
-    "FPS": "FPS",
-    "MOBO.Temp": "메인보드",
-    "CASE.Fan": "케이스",
-    "DISK.Temp": "디스크",
     "DISK.Read": "R",
     "DISK.Write": "W",
     "NET.Up": "🔼",
-    "NET.Down": "🔽",
-    "DATA.DayUp": "⏫",
-    "DATA.DayDown": "⏬"
+    "NET.Down": "🔽"
   },
   "Menu": {
     "__Comment_Global__": "--- Global ---",
@@ -92,9 +74,6 @@
     "ResetConfirm": "모든 설정을 초기화하시겠습니까?\n(프로그램이 재시작됩니다)",
     "Enable": "사용",
     "HardwareInfo": "하드웨어 정보",
-    "SpeedTest": "속도 측정",
-    "Traffic": "트래픽 기록",
-    "MonitorHistory": "모니터링 기록",
     "ThemeEditor": "테마 편집",
     "CleanMemory": "메모리 정리",
     "CleanMemorySuccess": "메모리 정리 완료",
@@ -112,7 +91,6 @@
     "Feedback": "피드백",
     "Changelog": "변경 로그",
     "RestartApp": "앱 재시작",
-
     "__Comment_Page1__": "--- 1. Main Panel ---",
     "MainFormSettings": "메인 패널",
     "HideMainForm": "패널 숨김",
@@ -125,14 +103,6 @@
     "ActionToggleVisible": "표시/숨김",
     "ActionTaskMgr": "작업 관리자",
     "ActionSettings": "설정 패널",
-    "ActionTrafficHistory": "트래픽 기록",
-    "WebServer": "웹 표시",
-    "WebServerPort": "웹 포트",
-    "WebServerPassword": "비밀번호",
-    "WebServerPasswordTip": "공백 시 없음",
-    "OpenWeb": "웹 열기",
-    "WebServerTip": "⚠️활성화 시 모바일은 '내부IP:포트' 또는 'IPv6:포트'로 접속 가능",
-
     "Appearance": "테마 설정",
     "Theme": "테마",
     "DisplayMode": "표시 모드",
@@ -143,7 +113,6 @@
     "Opacity": "투명도",
     "Percent": "퍼센트",
     "UsedSize": "사용량",
-
     "__Comment_Page2__": "--- 2. Taskbar ---",
     "TaskbarSettings": "작업 표시줄",
     "TaskbarShow": "표시 켜기",
@@ -166,7 +135,6 @@
     "TaskbarItemSpacing": "항목 간격",
     "TaskbarInnerSpacing": "내부 간격",
     "TaskbarVerticalPadding": "패딩",
-
     "TaskbarCustomColors": "색상 설정",
     "TaskbarCustomTip": "⚠️배경색을 작업 표시줄 색상과 맞춰주세요.",
     "ScreenColorPicker": "색상 선택기",
@@ -177,7 +145,6 @@
     "ValueWarnColor": "경고 값",
     "ValueCritColor": "위험 값",
     "BackgroundColor": "배경색",
-
     "__Comment_Page3__": "--- 3. Items ---",
     "MonitorItemDisplay": "항목 관리",
     "MonitorItem": "항목",
@@ -190,37 +157,28 @@
     "MainForm": "패널",
     "OnlyShowEnabled": "사용중만",
     "MonitorItemTip": "참고: 이름/약어에 공백 입력 시 라벨 숨김. 이름 삭제 시 기본값 복원. 일부 단위 {u}+문자 지원.",
-
     "__Comment_Page4__": "--- 4. Thresholds ---",
     "Thresholds": "알림 임계값",
     "ThresholdsTips": "⚠️바와 숫자 색상이 임계값에 따라 변경",
     "AlertTemp": "고온 경보",
     "AlertThreshold": "온도 제한",
-
     "GeneralHardware": "하드웨어",
     "HardwareLoad": "로드",
     "HardwareTemp": "온도",
-
     "NetworkDiskSpeed": "속도 제한",
     "DiskIOSpeed": "디스크 I/O",
     "UploadSpeed": "업로드",
     "DownloadSpeed": "다운로드",
-
-    "DailyTraffic": "일일 데이터",
-
     "__Comment_Page5__": "--- 5. System ---",
     "SystemHardwar": "시스템",
-    
     "SystemSettings": "일반",
     "Language": "언어 / Language",
     "AutoStart": "자동 실행",
     "AutoCheckUpdate": "자동 확인",
     "HideTrayIcon": "트레이 숨김",
-
     "Calibration": "보정",
     "MaxLimits": "최대값",
     "CalibrationTip": "⚠️정확한 바 표시를 위해 하드웨어 최대값을 입력하세요. 비우면 자동 학습.",
-
     "HardwareSettings": "하드웨어 소스",
     "DiskSource": "디스크",
     "NetworkSource": "네트워크",
@@ -229,19 +187,6 @@
     "UseWinPerCounters": "시스템 카운터 우선",
     "UseWinPerCountersTip": "⚠️부정확시 끄세요. CPU/GPU/RAM/디스크는 센서에서 직접 읽습니다.",
     "Refresh": "갱신 주기",
-    "IgnoreSMBTraffic": "SMB 트래픽 무시",
-    "MemoryDisplayMode": "메모리 표시",
-
-    "__Comment_Page6__": "--- 6. 플러그인 (PluginPage) ---",
-    "Plugins": "플러그인 관리",
-    "PluginDevGuide": "개발 가이드",
-    "PluginHint": "⚠️팁: 이름/단위/순서는 [항목 표시]에서 변경하세요.",
-    "PluginNoInstances": "플러그인 없음",
-    "PluginCreateCopy": "사본 만들기",
-    "PluginDeleteCopy": "사본 삭제",
-    "PluginRemoveTarget": "제거",
-    "PluginTargetTitle": "# 타겟",
-    "PluginAddTarget": "+ 타겟 추가",
-    "PluginDeleteConfirm": "사본을 삭제하시겠습니까?"
+    "MemoryDisplayMode": "메모리 표시"
   }
 }

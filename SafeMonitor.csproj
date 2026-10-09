@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>SafeMonitor</AssemblyName>
+    <RootNamespace>SafeMonitor</RootNamespace>
     <ApplicationIcon>resources\assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <DebugType>none</DebugType>
@@ -36,19 +38,19 @@
         </Content>
     </ItemGroup>
 	<ItemGroup>
-		<Content Include="resources\LiteMonitor.Updater.exe">
+		<Content Include="resources\SafeMonitor.Updater.exe">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 	
 	
 <ItemGroup>
-  <Compile Remove="LiteMonitor.Updater\**" />
-  <Compile Remove="LiteMonitor.Wpf\**" />
-  <EmbeddedResource Remove="LiteMonitor.Updater\**" />
-  <EmbeddedResource Remove="LiteMonitor.Wpf\**" />
-  <None Remove="LiteMonitor.Updater\**" />
-  <None Remove="LiteMonitor.Wpf\**" />
+  <Compile Remove="SafeMonitor.Updater\**" />
+  <Compile Remove="SafeMonitor.Wpf\**" />
+  <EmbeddedResource Remove="SafeMonitor.Updater\**" />
+  <EmbeddedResource Remove="SafeMonitor.Wpf\**" />
+  <None Remove="SafeMonitor.Updater\**" />
+  <None Remove="SafeMonitor.Wpf\**" />
 </ItemGroup>
 	
 <!-- 引入文件资源管理 -->

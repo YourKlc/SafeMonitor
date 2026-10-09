@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using static LiteMonitor.src.UI.Helpers.NativeMethods;
+using SafeMonitor.src.Core;
+using static SafeMonitor.src.UI.Helpers.NativeMethods;
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     /// <summary>
     /// 任务栏集成策略接口

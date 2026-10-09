@@ -1,7 +1,7 @@
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using System.Drawing.Text;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     /// <summary>
     /// 任务栏渲染器（仅负责绘制，不再负责布局）

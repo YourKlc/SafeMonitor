@@ -1,7 +1,7 @@
-using LiteMonitor.src.Core;
-using LiteMonitor.src.SystemServices;
-using LiteMonitor.src.UI;
-using LiteMonitor.src.UI.Helpers;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.SystemServices;
+using SafeMonitor.src.UI;
+using SafeMonitor.src.UI.Helpers;
 using System;
 using System.Drawing;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     public class MainForm : Form
     {

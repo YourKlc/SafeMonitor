@@ -6,12 +6,12 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
 using System.IO;
 using System.IO.Compression;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     /// <summary>
     /// SafeMonitor 自动更新模块
@@ -234,7 +234,7 @@ namespace LiteMonitor
                 if (!Directory.Exists(resourcesDir)) Directory.CreateDirectory(resourcesDir);
 
                 // 杀掉所有残留的 Updater 进程 (防止占用)
-                string[] updaterNames = { "Updater", "LiteMonitor.Updater" };
+                string[] updaterNames = { "Updater", "SafeMonitor.Updater" };
                 foreach (var name in updaterNames)
                 {
                     foreach (var p in Process.GetProcessesByName(name))
@@ -256,7 +256,7 @@ namespace LiteMonitor
                 using (var archive = ZipFile.OpenRead(zipPath))
                 {
                     var entry = archive.Entries.FirstOrDefault(e =>
-                        e.FullName.EndsWith("LiteMonitor.Updater.exe", StringComparison.OrdinalIgnoreCase));
+                        e.FullName.EndsWith("SafeMonitor.Updater.exe", StringComparison.OrdinalIgnoreCase));
 
                     if (entry == null)
                     {

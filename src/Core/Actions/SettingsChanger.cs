@@ -1,8 +1,8 @@
 using System.Linq;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using System.Reflection;
 using System.Collections.Generic;
-namespace LiteMonitor.src.Core.Actions
+namespace SafeMonitor.src.Core.Actions
 {
     /// <summary>
     /// 封装所有修改 Settings 对象的逻辑。
@@ -27,10 +27,6 @@ namespace LiteMonitor.src.Core.Actions
                 // 其他运行时状态
                 "LastAutoNetwork", "LastAutoDisk",
                 "ScreenDevice", "MaxLimitTipShown",
-                
-                // 流量统计 (累加值)
-                "TotalUpload", "TotalDownload",
-                "SessionUploadBytes", "SessionDownloadBytes",
                 
                 // 时间戳
                 "LastAutoSaveTime", "LastAlertTime"

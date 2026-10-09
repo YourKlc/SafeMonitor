@@ -5,10 +5,10 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using LibreHardwareMonitor.Hardware;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using Debug = System.Diagnostics.Debug;
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     public class NetworkManager
     {
@@ -417,12 +417,6 @@ namespace LiteMonitor.src.SystemServices
             // D. 存入数据
             // ★★★ [新增] 安全阀：单次增量超过 10GB 视为异常丢弃 ★★★
             if (finalUp > 10737418240L || finalDown > 10737418240L) return;
-
-            if (finalUp > 0 || finalDown > 0)
-            {
-                cfg.SessionUploadBytes += finalUp;
-                cfg.SessionDownloadBytes += finalDown;
-            }
         }
 
         private void MatchNativeNetworkAdapter(string lhmName, NetworkState state)

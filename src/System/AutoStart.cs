@@ -5,11 +5,11 @@ using System.Security.Principal;
 using System.Windows.Forms;
 using System.Xml.Linq; // 新增：用于 XDocument
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     public static class AutoStart
     {
-        private const string TaskName = "LiteMonitor_AutoStart";
+        private const string TaskName = "SafeMonitor_AutoStart";
 
         public static void Set(bool enabled)
         {
@@ -32,7 +32,7 @@ namespace LiteMonitor.src.SystemServices
                 if (IsEnabledForCurrentExe(exePath)) return;
 
                 // 使用 XML 方案，这是唯一能同时满足 [不报PowerShell错误] + [实现电池启动] 的方案
-                string tempXmlPath = Path.Combine(Path.GetTempPath(), $"LiteMonitor_Task_{Guid.NewGuid()}.xml");
+                string tempXmlPath = Path.Combine(Path.GetTempPath(), $"SafeMonitor_Task_{Guid.NewGuid()}.xml");
 
                 try
                 {
@@ -170,7 +170,7 @@ namespace LiteMonitor.src.SystemServices
                 new XElement(ns + "Task",
                     new XAttribute("version", "1.2"),
                     new XElement(ns + "RegistrationInfo",
-                        new XElement(ns + "Description", "LiteMonitor Auto Start")
+                        new XElement(ns + "Description", "SafeMonitor Auto Start")
                     ),
                     new XElement(ns + "Triggers",
                         new XElement(ns + "LogonTrigger",

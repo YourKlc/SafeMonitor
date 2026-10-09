@@ -4,9 +4,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     public static class SettingsHelper
     {
@@ -164,9 +164,11 @@ namespace LiteMonitor
                 new MonitorItemConfig { Key = "DASH.Uptime", SortIndex = 103, TaskbarSortIndex = 1300, VisibleInPanel = true, TaskbarLabel = " " },
                 new MonitorItemConfig { Key = "DASH.IP",   SortIndex = 104, TaskbarSortIndex = 1400, VisibleInPanel = false, TaskbarLabel = " " },
                
-                // [2xx] CPU (负载/频率走性能计数器；温度/电压/功耗/风扇需内核驱动，已移除)
+                // [2xx] CPU (负载/频率走性能计数器；功耗/温度走官方用户态 SDK：AMD Ryzen Master / Intel PresentMon)
                 new MonitorItemConfig { Key = "CPU.Load",  SortIndex = 201, VisibleInPanel = true, VisibleInTaskbar = true },
+                new MonitorItemConfig { Key = "CPU.Temp",  SortIndex = 202, VisibleInPanel = true },
                 new MonitorItemConfig { Key = "CPU.Clock", SortIndex = 203, VisibleInPanel = false },
+                new MonitorItemConfig { Key = "CPU.Power", SortIndex = 204, VisibleInPanel = false },
 
                 // [3xx] GPU
                 new MonitorItemConfig { Key = "GPU.Load",  SortIndex = 301, VisibleInPanel = true, VisibleInTaskbar = true },
@@ -179,7 +181,7 @@ namespace LiteMonitor
                 // [4xx] HOST (MEM, FPS, MOBO, DISK Temp, CASE Fan)
                 new MonitorItemConfig { Key = "MEM.Load",  SortIndex = 401, VisibleInPanel = true, VisibleInTaskbar = true },
                 // [New] 虚拟内存 (已提交内存)：默认不显示，用户可在 [监控项显示] 页面勾选
-                new MonitorItemConfig { Key = "MEM.Virtual", SortIndex = 402, VisibleInPanel = false },
+                new MonitorItemConfig { Key = "MEM.Virtual", SortIndex = 402, VisibleInPanel = true, VisibleInTaskbar = true },
 
                 // [5xx] BATTERY (New Group)
                 new MonitorItemConfig { Key = "BAT.Percent", SortIndex = 501, VisibleInPanel = false, VisibleInTaskbar = false },
@@ -188,8 +190,8 @@ namespace LiteMonitor
                 new MonitorItemConfig { Key = "BAT.Current", SortIndex = 504, VisibleInPanel = false },
 
                 // [6xx] DISK IO
-                new MonitorItemConfig { Key = "DISK.Read", SortIndex = 601, VisibleInPanel = true },
-                new MonitorItemConfig { Key = "DISK.Write",SortIndex = 602, VisibleInPanel = true },
+                new MonitorItemConfig { Key = "DISK.Read", SortIndex = 601, VisibleInPanel = true, VisibleInTaskbar = true },
+                new MonitorItemConfig { Key = "DISK.Write",SortIndex = 602, VisibleInPanel = true, VisibleInTaskbar = true },
 
                 // [7xx] NET
                 new MonitorItemConfig { Key = "NET.Up",    SortIndex = 701, VisibleInPanel = true, VisibleInTaskbar = true },

@@ -1,6 +1,6 @@
 {
   "version": "1.3.6",
-  "changelog": "修正1.3.5版本部分问题\n1，新增监控历史，可查看温度、负载、功耗、频率、FPS 等历史趋势\n2，支持多显卡切换\n3，更新硬件核心库到最新正式版\n4，优化并修复部分已知问题",
+  "changelog": "1，移除网速测试、监控历史、流量统计、插件系统、网页版监控功能\n2，移除所有内核驱动依赖（PawnIO 等），CPU 温度/功耗改由厂商官方用户态 SDK 读取（AMD Ryzen Master / Intel PresentMon）\n3，更新与下载仅走 GitHub Release，不再使用任何国内镜像与第三方下载源\n4，支持多显卡切换\n5，优化并修复部分已知问题",
   "releaseDate": "2026-05-16",
   "downloadUrl": "https://github.com/YourKlc/SafeMonitor/releases"
 }

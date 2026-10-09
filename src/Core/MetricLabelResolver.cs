@@ -1,6 +1,6 @@
-using LiteMonitor.src.SystemServices.InfoService;
+using SafeMonitor.src.SystemServices.InfoService;
 
-namespace LiteMonitor.src.Core
+namespace SafeMonitor.src.Core
 {
     public static class MetricLabelResolver
     {

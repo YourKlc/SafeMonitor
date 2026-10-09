@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     public static class SystemActions
     {

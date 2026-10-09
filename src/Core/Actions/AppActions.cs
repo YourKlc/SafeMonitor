@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using LiteMonitor.src.UI;
-using LiteMonitor.src.SystemServices;
+using SafeMonitor.src.UI;
+using SafeMonitor.src.SystemServices;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace LiteMonitor.src.Core.Actions
+namespace SafeMonitor.src.Core.Actions
 {
     /// <summary>
     /// 全局动作执行器

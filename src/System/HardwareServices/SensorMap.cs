@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     /// <summary>
     /// 核心服务：负责将物理硬件传感器映射为标准 Key (如 CPU.Temp)

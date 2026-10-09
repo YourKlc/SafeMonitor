@@ -1,10 +1,10 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.UI.Controls;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.UI.Controls;
 
-namespace LiteMonitor.src.UI.SettingsPage
+namespace SafeMonitor.src.UI.SettingsPage
 {
     public class ThresholdPage : SettingsPageBase
     {

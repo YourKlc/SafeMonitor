@@ -3,12 +3,12 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.ThemeEditor
+namespace SafeMonitor.ThemeEditor
 {
     /// <summary>
-    /// 实时预览控件（独立于 LiteMonitor 主程序）
+    /// 实时预览控件（独立于 SafeMonitor 主程序）
     /// - 使用 Mock 数据
     /// - 使用 UILayout + UIRenderer 渲染
     /// - 背景 + 边框 + DPI 处理

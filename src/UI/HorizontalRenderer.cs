@@ -1,6 +1,6 @@
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     /// <summary>
     /// 横版渲染器（基于列结构绘制）

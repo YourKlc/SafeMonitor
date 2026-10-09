@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace LiteMonitor.src.Core
+namespace SafeMonitor.src.Core
 {
     public static class LanguageManager
     {

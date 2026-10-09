@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.Core.Actions;
-using LiteMonitor.src.SystemServices;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.Core.Actions;
+using SafeMonitor.src.SystemServices;
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     /// <summary>
     /// 主窗口业务助手 (Business Helper)
@@ -158,7 +158,7 @@ namespace LiteMonitor.src.UI.Helpers
         private void InitTray()
         {
             try { _tray.Icon = Properties.Resources.AppIcon ?? _form.Icon; } catch { _tray.Icon = _form.Icon; }
-            _tray.Text = "LiteMonitor";
+            _tray.Text = "SafeMonitor";
             _tray.Visible = !_cfg.HideTrayIcon;
 
             RebuildMenus();

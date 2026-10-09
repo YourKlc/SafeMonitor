@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using Debug = System.Diagnostics.Debug;
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     public class HardwareValueProvider : IDisposable
     {
@@ -15,6 +15,7 @@ namespace LiteMonitor.src.SystemServices
         private readonly SensorMap _sensorMap;
         private readonly NetworkManager _networkManager;
         private readonly DiskManager _diskManager;
+        private readonly CpuTelemetryProvider _cpuTelemetry;
         private readonly object _lock;
         private readonly Dictionary<string, float> _lastValidMap; 
         
@@ -40,7 +41,7 @@ namespace LiteMonitor.src.SystemServices
         private string _lastPrefNet = "";
         private string _lastPrefGpu = "";
         
-        public HardwareValueProvider(Computer c, Settings s, SensorMap map, NetworkManager net, DiskManager disk, PerformanceCounterManager perfManager, object syncLock, Dictionary<string, float> lastValid)
+        public HardwareValueProvider(Computer c, Settings s, SensorMap map, NetworkManager net, DiskManager disk, PerformanceCounterManager perfManager, object syncLock, Dictionary<string, float> lastValid, CpuTelemetryProvider cpuTelemetry = null)
         {
             _computer = c;
             _cfg = s;
@@ -50,6 +51,7 @@ namespace LiteMonitor.src.SystemServices
             _perfManager = perfManager;
             _lock = syncLock;
             _lastValidMap = lastValid;
+            _cpuTelemetry = cpuTelemetry;
 
             // 初始化子服务
             _componentProcessor = new ComponentProcessor(c, s, map);
@@ -318,14 +320,23 @@ namespace LiteMonitor.src.SystemServices
                         }
                         break;
 
-                    // 2. CPU.Temp
+                    // 2. CPU.Temp (AMD 经 Ryzen Master SDK；Intel 无用户态途径)
                     case "CPU.Temp":
-                        result = _componentProcessor.GetCpuTemp();
+                        result = _cpuTelemetry?.GetTemperature();
+                        if (result == null) result = _componentProcessor.GetCpuTemp();
                         if (result == null && _manualSensorCache.TryGetValue("CPU.Temp", out var fallbackT))
                         {
                             result = fallbackT.Value;
                         }
-                        if (result == null) result = 0f;
+                        break;
+
+                    // 3. CPU.Power (AMD 经 Ryzen Master SDK；Intel 经 PresentMon)
+                    case "CPU.Power":
+                        result = _cpuTelemetry?.GetPower();
+                        if (result == null)
+                        {
+                            result = _componentProcessor.GetCompositeValue(key, _manualSensorCache);
+                        }
                         break;
 
                     // 6.1 虚拟内存 (已提交内存，即 物理内存 + 页面文件 的使用量)

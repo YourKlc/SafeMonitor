@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices; // [Added] For P/Invoke
 using System.Diagnostics; // [Added] For Process
 using System.Net.NetworkInformation; // [Added] For NetworkChange
-using LiteMonitor.src.SystemServices;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.SystemServices;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.src.SystemServices.InfoService
+namespace SafeMonitor.src.SystemServices.InfoService
 {
     /// <summary>
     /// 系统信息服务 (单例)

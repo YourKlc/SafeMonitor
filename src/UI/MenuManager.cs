@@ -3,21 +3,21 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
-using LiteMonitor.src.SystemServices;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.Core.Actions;
-using LiteMonitor.src.UI;
-using LiteMonitor.src.UI.Helpers;
+using SafeMonitor.src.SystemServices;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.Core.Actions;
+using SafeMonitor.src.UI;
+using SafeMonitor.src.UI.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics;
-using LiteMonitor.src.SystemServices.InfoService;
+using SafeMonitor.src.SystemServices.InfoService;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     public static class MenuManager
     {
         /// <summary>
-        /// 构建 LiteMonitor 主菜单（右键菜单 + 托盘菜单）
+        /// 构建 SafeMonitor 主菜单（右键菜单 + 托盘菜单）
         /// </summary>
         public static ContextMenuStrip Build(MainForm form, Settings cfg, UIController? ui, string targetPage = null)
         {
@@ -351,7 +351,7 @@ namespace LiteMonitor
                 try
                 {
                     // 打开设置窗口
-                    using (var f = new LiteMonitor.src.UI.SettingsForm(cfg, ui, form))
+                    using (var f = new SafeMonitor.src.UI.SettingsForm(cfg, ui, form))
                     {
                         if (!string.IsNullOrEmpty(targetPage)) f.SwitchPage(targetPage);
                         f.ShowDialog(form);

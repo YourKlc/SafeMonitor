@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     /// <summary>
     /// 一个轻量级、无闪烁、高性能的自定义悬浮提示窗体

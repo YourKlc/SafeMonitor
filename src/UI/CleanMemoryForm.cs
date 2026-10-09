@@ -3,10 +3,10 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.SystemServices;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.SystemServices;
 
-namespace LiteMonitor.src.UI
+namespace SafeMonitor.src.UI
 {
     // 自定义进度条控件，支持自定义颜色 (自 SpeedTestForm 迁移而来)
     public class CustomProgressBar : ProgressBar

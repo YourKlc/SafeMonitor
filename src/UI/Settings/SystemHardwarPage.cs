@@ -5,11 +5,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.SystemServices;
-using LiteMonitor.src.UI.Controls;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.SystemServices;
+using SafeMonitor.src.UI.Controls;
 
-namespace LiteMonitor.src.UI.SettingsPage
+namespace SafeMonitor.src.UI.SettingsPage
 {
     public class SystemHardwarPage : SettingsPageBase
     {
@@ -130,13 +130,6 @@ namespace LiteMonitor.src.UI.SettingsPage
             
             group.AddToggle(this, "Menu.UseWinPerCounters", () => Config?.UseWinPerCounters ?? false, v => { if(Config!=null) Config.UseWinPerCounters = v; });
             
-            // ★★★ [新增] 忽略 SMB 流量开关 ★★★
-            // 直接使用中文作为 Key，如果 LanguageManager 找不到 Key 会原样返回
-            group.AddToggle(this, LanguageManager.T("Menu.IgnoreSMBTraffic"),
-                () => Config?.IgnoreSmbTraffic ?? false, 
-                v => { if(Config!=null) Config.IgnoreSmbTraffic = v; }
-            );
-
             // 内存/显存显示模式 (从主界面设置移来)
             string[] memOptions = { LanguageManager.T("Menu.Percent"), LanguageManager.T("Menu.UsedSize") };
             group.AddComboIndex(this, "Menu.MemoryDisplayMode", memOptions,

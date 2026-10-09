@@ -1,5 +1,5 @@
 {
-  "Title": "⚡️LiteMonitor",
+  "Title": "⚡️SafeMonitor",
   "Groups": {
     "DASH": "ℹ️Panel",
     "CPU": "💻CPU",
@@ -23,9 +23,6 @@
     "CPU.Temp": "Temp CPU",
     "CPU.Clock": "Frec CPU",
     "CPU.Power": "W CPU",
-    "CPU.Voltage": "V CPU",
-    "CPU.Fan": "Vent CPU",
-    "CPU.Pump": "Bomba CPU",
     "GPU.Load": "Uso GPU",
     "GPU.Temp": "Temp GPU",
     "GPU.VRAM": "VRAM",
@@ -34,16 +31,10 @@
     "GPU.Fan": "Vent GPU",
     "MEM.Load": "Uso RAM",
     "MEM.Virtual": "Mem. virtual",
-    "FPS": "FPS",
-    "MOBO.Temp": "Temp MOBO",
-    "CASE.Fan": "Vent Case",
-    "DISK.Temp": "Temp Disco",
     "DISK.Read": "Lectura",
     "DISK.Write": "Escritura",
     "NET.Up": "Subida",
-    "NET.Down": "Bajada",
-    "DATA.DayUp": "Subida Hoy",
-    "DATA.DayDown": "Bajada Hoy"
+    "NET.Down": "Bajada"
   },
   "Short": {
     "DASH.HOST": " ",
@@ -58,9 +49,6 @@
     "CPU.Temp": "CPU",
     "CPU.Clock": "CCLK",
     "CPU.Power": "CPWR",
-    "CPU.Voltage": "CVOL",
-    "CPU.Fan": "CFAN",
-    "CPU.Pump": "Bomba",
     "GPU.Load": "GPU",
     "GPU.Temp": "GPU",
     "GPU.VRAM": "VRAM",
@@ -69,16 +57,10 @@
     "GPU.Fan": "GFAN",
     "MEM.Load": "RAM",
     "MEM.Virtual": "VMEM",
-    "FPS": "FPS",
-    "MOBO.Temp": "MOBO",
-    "CASE.Fan": "Case",
-    "DISK.Temp": "Disco",
     "DISK.Read": "L",
     "DISK.Write": "E",
     "NET.Up": "🔼",
-    "NET.Down": "🔽",
-    "DATA.DayUp": "⏫",
-    "DATA.DayDown": "⏬"
+    "NET.Down": "🔽"
   },
   "Menu": {
     "__Comment_Global__": "--- Global ---",
@@ -92,9 +74,6 @@
     "ResetConfirm": "Restablecer todos los ajustes?\n(Se reiniciará el programa)",
     "Enable": "Activar",
     "HardwareInfo": "Info. Hardware",
-    "SpeedTest": "Velocidad",
-    "Traffic": "Tráfico",
-    "MonitorHistory": "Historial monitor",
     "ThemeEditor": "Editor",
     "CleanMemory": "Limpiar RAM",
     "CleanMemorySuccess": "RAM limpiada",
@@ -112,7 +91,6 @@
     "Feedback": "Comentarios",
     "Changelog": "Cambios",
     "RestartApp": "Reiniciar App",
-
     "__Comment_Page1__": "--- 1. Panel ---",
     "MainFormSettings": "Panel Principal",
     "HideMainForm": "Ocultar",
@@ -125,14 +103,6 @@
     "ActionToggleVisible": "Panel on/off",
     "ActionTaskMgr": "Administrador",
     "ActionSettings": "Ajustes",
-    "ActionTrafficHistory": "Historial datos",
-    "WebServer": "Mostrar web",
-    "WebServerPort": "Puerto web",
-    "WebServerPassword": "Contraseña",
-    "WebServerPasswordTip": "Vacío para ninguna",
-    "OpenWeb": "Abrir web",
-    "WebServerTip": "⚠️Web activa. Acceso móvil vía LAN 'IP:Puerto' o 'IPv6:Puerto'.",
-
     "Appearance": "Apariencia",
     "Theme": "Tema",
     "DisplayMode": "Modo",
@@ -143,7 +113,6 @@
     "Opacity": "Opacidad",
     "Percent": "Porcentaje",
     "UsedSize": "Tamaño",
-
     "__Comment_Page2__": "--- 2. Taskbar ---",
     "TaskbarSettings": "Barra Tareas",
     "TaskbarShow": "Mostrar",
@@ -166,7 +135,6 @@
     "TaskbarItemSpacing": "Espacio",
     "TaskbarInnerSpacing": "Int.Esp",
     "TaskbarVerticalPadding": "Relleno",
-
     "TaskbarCustomColors": "Colores",
     "TaskbarCustomTip": "⚠️El fondo debe coincidir con la barra.",
     "ScreenColorPicker": "Selector color",
@@ -177,7 +145,6 @@
     "ValueWarnColor": "Aviso",
     "ValueCritColor": "Crítico",
     "BackgroundColor": "Fondo",
-
     "__Comment_Page3__": "--- 3. Items ---",
     "MonitorItemDisplay": "Elementos",
     "MonitorItem": "Ítem",
@@ -190,37 +157,28 @@
     "MainForm": "Panel",
     "OnlyShowEnabled": "Solo activados",
     "MonitorItemTip": "Tip: Espacio en Nombre/Corto oculta etiqueta. Vacío restaura. Unidades: {u}+car.",
-
     "__Comment_Page4__": "--- 4. Umbrales ---",
     "Thresholds": "Umbrales",
     "ThresholdsTips": "⚠️Color barra según umbral",
     "AlertTemp": "Alerta Temp",
     "AlertThreshold": "Límite",
-
     "GeneralHardware": "Hardware",
     "HardwareLoad": "Carga",
     "HardwareTemp": "Temp",
-
     "NetworkDiskSpeed": "Velocidad E/S",
     "DiskIOSpeed": "Disco",
     "UploadSpeed": "Subida",
     "DownloadSpeed": "Bajada",
-
-    "DailyTraffic": "Límite Datos",
-
     "__Comment_Page5__": "--- 5. Sistema ---",
     "SystemHardwar": "Sistema",
-    
     "SystemSettings": "General",
     "Language": "Idioma",
     "AutoStart": "Inicio auto",
     "AutoCheckUpdate": "Auto-Check",
     "HideTrayIcon": "Ocultar icono",
-
     "Calibration": "Calibración",
     "MaxLimits": "Máximos",
     "CalibrationTip": "⚠️Define el 100% de las barras. Vacío = Auto.",
-
     "HardwareSettings": "Fuente",
     "DiskSource": "Disco",
     "NetworkSource": "Red",
@@ -229,19 +187,6 @@
     "UseWinPerCounters": "Contadores Sistema",
     "UseWinPerCountersTip": "⚠️Desactiva si no es exacto. CPU/GPU/RAM/DISCO leídos desde sensores.",
     "Refresh": "Tasa",
-    "IgnoreSMBTraffic": "Ignorar SMB",
-    "MemoryDisplayMode": "Vis. RAM",
-
-    "__Comment_Page6__": "--- 6. Plugins (PluginPage) ---",
-    "Plugins": "Plugins",
-    "PluginDevGuide": "Guía Dev",
-    "PluginHint": "⚠️Nota: Cambiar nombre/unidad/orden en [Items Monitor].",
-    "PluginNoInstances": "Sin Plugins",
-    "PluginCreateCopy": "Crear Copia",
-    "PluginDeleteCopy": "Borrar Copia",
-    "PluginRemoveTarget": "Quitar",
-    "PluginTargetTitle": "# Objetivo",
-    "PluginAddTarget": "+ Añadir Objetivo",
-    "PluginDeleteConfirm": "¿Borrar copia?"
+    "MemoryDisplayMode": "Vis. RAM"
   }
 }

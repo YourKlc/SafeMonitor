@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.Core.Actions;
-using LiteMonitor.src.UI.Helpers;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.Core.Actions;
+using SafeMonitor.src.UI.Helpers;
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     /// <summary>
     /// 菜单监控项生成助手
@@ -18,26 +18,6 @@ namespace LiteMonitor.src.UI.Helpers
         public static ToolStripMenuItem Build(MainForm form, Settings cfg, UIController? ui, bool isTaskbarMode)
         {
             var monitorRoot = new ToolStripMenuItem(LanguageManager.T("Menu.MonitorItemDisplay"));
-
-            // [新增] 插件管理入口 (Emoji + 跳转)
-            var pluginMgr = new ToolStripMenuItem("🧩 " + LanguageManager.T("Menu.Plugins")); 
-            pluginMgr.Click += (_, __) => 
-            {
-                try
-                {
-                    using (var f = new LiteMonitor.src.UI.SettingsForm(cfg, ui, form))
-                    {
-                        f.SwitchPage("Plugins"); 
-                        f.ShowDialog(form);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Open Settings Failed: " + ex.Message);
-                }
-            };
-            monitorRoot.DropDownItems.Add(pluginMgr);
-            monitorRoot.DropDownItems.Add(new ToolStripSeparator());
 
             // --- 内部辅助函数：首次开启时的最大值设定引导 ---
             void CheckAndRemind(string name)
@@ -51,11 +31,11 @@ namespace LiteMonitor.src.UI.Helpers
                 cfg.MaxLimitTipShown = true;
                 cfg.Save();
 
-                if (MessageBox.Show(msg, "LiteMonitor Setup", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show(msg, "SafeMonitor Setup", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     try
                     {
-                        using (var f = new LiteMonitor.src.UI.SettingsForm(cfg, ui, form))
+                        using (var f = new SafeMonitor.src.UI.SettingsForm(cfg, ui, form))
                         {
                             f.SwitchPage("System"); // 跳转到可以设置最大值的页面
                             f.ShowDialog(form);

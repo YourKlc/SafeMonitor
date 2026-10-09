@@ -2,13 +2,13 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor;
+using SafeMonitor.src.Core;
+using SafeMonitor;
 using System.Diagnostics; // TaskbarForm
 using Debug = System.Diagnostics.Debug;
 
 
-namespace LiteMonitor.src.UI.Helpers
+namespace SafeMonitor.src.UI.Helpers
 {
     /// <summary>
     /// 负责管理任务栏窗口的悬浮提示逻辑

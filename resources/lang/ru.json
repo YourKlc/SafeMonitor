@@ -1,5 +1,5 @@
 {
-  "Title": "⚡️LiteMonitor",
+  "Title": "⚡️SafeMonitor",
   "Groups": {
     "DASH": "ℹ️Дашборд",
     "CPU": "💻CPU",
@@ -23,9 +23,6 @@
     "CPU.Temp": "Темп CPU",
     "CPU.Clock": "Частота CPU",
     "CPU.Power": "Питание CPU",
-    "CPU.Voltage": "Вольтаж CPU",
-    "CPU.Fan": "Вент CPU",
-    "CPU.Pump": "Помпа CPU",
     "GPU.Load": "Загрузка GPU",
     "GPU.Temp": "Темп GPU",
     "GPU.VRAM": "Память GPU",
@@ -34,16 +31,10 @@
     "GPU.Fan": "Вент GPU",
     "MEM.Load": "Загрузка ОЗУ",
     "MEM.Virtual": "Вирт. память",
-    "FPS": "FPS",
-    "MOBO.Temp": "Темп MB",
-    "CASE.Fan": "Вент Кор",
-    "DISK.Temp": "Темп Диска",
     "DISK.Read": "Чтение",
     "DISK.Write": "Запись",
     "NET.Up": "Отдача",
-    "NET.Down": "Загрузка",
-    "DATA.DayUp": "Отдача дн.",
-    "DATA.DayDown": "Загр. дн."
+    "NET.Down": "Загрузка"
   },
   "Short": {
     "DASH.HOST": " ",
@@ -58,9 +49,6 @@
     "CPU.Temp": "CPU",
     "CPU.Clock": "CCLK",
     "CPU.Power": "CPWR",
-    "CPU.Voltage": "CVOL",
-    "CPU.Fan": "CFAN",
-    "CPU.Pump": "Помпа",
     "GPU.Load": "GPU",
     "GPU.Temp": "GPU",
     "GPU.VRAM": "VRAM",
@@ -69,16 +57,10 @@
     "GPU.Fan": "GFAN",
     "MEM.Load": "RAM",
     "MEM.Virtual": "VMEM",
-    "FPS": "FPS",
-    "MOBO.Temp": "MB",
-    "CASE.Fan": "Кор",
-    "DISK.Temp": "Диск",
     "DISK.Read": "R",
     "DISK.Write": "W",
     "NET.Up": "🔼",
-    "NET.Down": "🔽",
-    "DATA.DayUp": "⏫",
-    "DATA.DayDown": "⏬"
+    "NET.Down": "🔽"
   },
   "Menu": {
     "__Comment_Global__": "--- Global ---",
@@ -92,9 +74,6 @@
     "ResetConfirm": "Сбросить все настройки?\n(Программа перезапустится)",
     "Enable": "Вкл",
     "HardwareInfo": "Инфо о железе",
-    "SpeedTest": "Тест сети",
-    "Traffic": "История",
-    "MonitorHistory": "История мониторинга",
     "ThemeEditor": "Редактор",
     "CleanMemory": "Очистка ОЗУ",
     "CleanMemorySuccess": "ОЗУ очищена",
@@ -112,7 +91,6 @@
     "Feedback": "Отзыв",
     "Changelog": "Список изм.",
     "RestartApp": "Перезапуск",
-
     "__Comment_Page1__": "--- 1. Panel ---",
     "MainFormSettings": "Гл. Панель",
     "HideMainForm": "Скрыть",
@@ -125,14 +103,6 @@
     "ActionToggleVisible": "Панель вкл/выкл",
     "ActionTaskMgr": "Диспетчер",
     "ActionSettings": "Настройки",
-    "ActionTrafficHistory": "История",
-    "WebServer": "Веб-интерфейс",
-    "WebServerPort": "Порт веб",
-    "WebServerPassword": "Пароль",
-    "WebServerPasswordTip": "Пусто для сброса",
-    "OpenWeb": "Открыть веб",
-    "WebServerTip": "⚠️Веб включен. Доступ: LAN 'IP:Порт' или 'IPv6:Порт'.",
-
     "Appearance": "Внешний вид",
     "Theme": "Тема",
     "DisplayMode": "Режим",
@@ -143,7 +113,6 @@
     "Opacity": "Прозр.",
     "Percent": "Процент",
     "UsedSize": "Размер",
-
     "__Comment_Page2__": "--- 2. Taskbar ---",
     "TaskbarSettings": "Панель задач",
     "TaskbarShow": "Показывать",
@@ -166,7 +135,6 @@
     "TaskbarItemSpacing": "Расстояние",
     "TaskbarInnerSpacing": "Внутреннее",
     "TaskbarVerticalPadding": "Заполнение",
-
     "TaskbarCustomColors": "Цвета",
     "TaskbarCustomTip": "⚠️Фон должен совпадать с панелью задач.",
     "ScreenColorPicker": "Выбор цвета",
@@ -177,7 +145,6 @@
     "ValueWarnColor": "Внимание",
     "ValueCritColor": "Критич.",
     "BackgroundColor": "Фон",
-
     "__Comment_Page3__": "--- 3. Items ---",
     "MonitorItemDisplay": "Мониторинг",
     "MonitorItem": "Поле",
@@ -190,37 +157,28 @@
     "MainForm": "Окно",
     "OnlyShowEnabled": "Только вкл",
     "MonitorItemTip": "Прим: Пробел в Имя/Сокр скрывает метку. Пустое имя сбрасывает. Единицы подд. {u}+символ.",
-
     "__Comment_Page4__": "--- 4. Thresholds ---",
     "Thresholds": "Пороги",
     "ThresholdsTips": "⚠️Цвет шкалы по порогу",
     "AlertTemp": "Алерт Темп",
     "AlertThreshold": "Лимит",
-
     "GeneralHardware": "Железо",
     "HardwareLoad": "Загрузка",
     "HardwareTemp": "Темп",
-
     "NetworkDiskSpeed": "Скорость I/O",
     "DiskIOSpeed": "Диск",
     "UploadSpeed": "Отдача",
     "DownloadSpeed": "Загрузка",
-
-    "DailyTraffic": "Лимит Траф.",
-
     "__Comment_Page5__": "--- 5. System ---",
     "SystemHardwar": "Система",
-    
     "SystemSettings": "Общее",
     "Language": "Язык",
     "AutoStart": "Автозапуск",
     "AutoCheckUpdate": "Авто-проверка",
     "HideTrayIcon": "Без иконки",
-
     "Calibration": "Калибровка",
     "MaxLimits": "Максимум",
     "CalibrationTip": "⚠️Задает 100% для шкал. Пусто = Авто.",
-
     "HardwareSettings": "Источник",
     "DiskSource": "Диск",
     "NetworkSource": "Сеть",
@@ -229,19 +187,6 @@
     "UseWinPerCounters": "Системные счетчики",
     "UseWinPerCountersTip": "⚠️Отключите при неточности. CPU/GPU/RAM/Диск читаются из датчиков.",
     "Refresh": "Частота",
-    "IgnoreSMBTraffic": "Игнор. SMB",
-    "MemoryDisplayMode": "Вид ОЗУ",
-
-    "__Comment_Page6__": "--- 6. Плагины (PluginPage) ---",
-    "Plugins": "Плагины",
-    "PluginDevGuide": "Гайд Dev",
-    "PluginHint": "⚠️Инфо: Измените имя/ед.изм/порядок на стр [Монитор].",
-    "PluginNoInstances": "Нет плагинов",
-    "PluginCreateCopy": "Создать копию",
-    "PluginDeleteCopy": "Удалить копию",
-    "PluginRemoveTarget": "Убрать",
-    "PluginTargetTitle": "# Цель",
-    "PluginAddTarget": "+ Добавить цель",
-    "PluginDeleteConfirm": "Удалить копию?"
+    "MemoryDisplayMode": "Вид ОЗУ"
   }
 }

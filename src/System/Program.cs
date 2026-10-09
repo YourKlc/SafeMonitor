@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Threading; // 必须引用：用于 Mutex
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.SystemServices;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.SystemServices;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     internal static class Program
     {
@@ -28,7 +28,7 @@ namespace LiteMonitor
 
                 if (string.IsNullOrEmpty(exePath))
                 {
-                    mutexName = "Global\\LiteMonitor_SingleInstance_Mutex_UniqueKey";
+                    mutexName = "Global\\SafeMonitor_SingleInstance_Mutex_UniqueKey";
                 }
                 else
                 {
@@ -42,11 +42,11 @@ namespace LiteMonitor
 
                     // [建议] 增加哈希或长度截断，防止路径过长导致 Mutex 名称超过系统限制 (260字符) 从而抛出异常进入 catch
                     // 这里简单处理：如果生成的名称太长，就取路径的 HashCode 混淆一下
-                    string baseName = $"Global\\LiteMonitor_SingleInstance_{sanitizedPath}_Mutex";
+                    string baseName = $"Global\\SafeMonitor_SingleInstance_{sanitizedPath}_Mutex";
                     if (baseName.Length > 250) 
                     {
                          // 如果路径太长，使用路径的哈希值来保证唯一性且不超长
-                         baseName = $"Global\\LiteMonitor_SingleInstance_{sanitizedPath.GetHashCode()}_Mutex";
+                         baseName = $"Global\\SafeMonitor_SingleInstance_{sanitizedPath.GetHashCode()}_Mutex";
                     }
                     
                     mutexName = baseName;
@@ -60,7 +60,7 @@ namespace LiteMonitor
                 // LogCrash(ex, "Mutex_Creation_Failed"); 
                 
                 // 回退策略
-                mutexName = "Global\\LiteMonitor_SingleInstance_Mutex_UniqueKey";
+                mutexName = "Global\\SafeMonitor_SingleInstance_Mutex_UniqueKey";
                 _mutex = new Mutex(true, mutexName, out createNew);
             }
 
@@ -117,7 +117,7 @@ namespace LiteMonitor
             try
             {
                 // 日志文件保存在程序运行目录下
-                string logPath = Path.Combine(AppContext.BaseDirectory, "LiteMonitor_Error.log");
+                string logPath = Path.Combine(AppContext.BaseDirectory, "SafeMonitor_Error.log");
                 
                 string errorMsg = "==================================================\n" +
                                   $"[Time]: {DateTime.Now}\n" +
@@ -130,7 +130,7 @@ namespace LiteMonitor
 
                 // 只有真的崩了才弹窗提示用户
                 MessageBox.Show($"程序遇到致命错误！\n错误日志已保存至：{logPath}\n\n原因：{ex.Message}", 
-                                "LiteMonitor Crash", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                "SafeMonitor Crash", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch 
             {

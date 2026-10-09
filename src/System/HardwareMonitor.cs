@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices; // ★★★ 新增：引用用于内存修剪的库
 using System.Reflection; // ★★★ 新增：用于反射关闭历史记录
 using LibreHardwareMonitor.Hardware;
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using System.Linq;
 using System.Threading;
 
-namespace LiteMonitor.src.SystemServices
+namespace SafeMonitor.src.SystemServices
 {
     public sealed class HardwareMonitor : IDisposable
     {
@@ -26,6 +26,7 @@ namespace LiteMonitor.src.SystemServices
         private readonly SensorMap _sensorMap;
         private readonly NetworkManager _networkManager;
         private readonly DiskManager _diskManager;
+        private readonly CpuTelemetryProvider _cpuTelemetry;
         private readonly HardwareValueProvider _valueProvider;
 
         // 性能计数器管理器
@@ -83,6 +84,9 @@ namespace LiteMonitor.src.SystemServices
             _networkManager = new NetworkManager(_perfCounterManager);
             _diskManager = new DiskManager();
 
+            // CPU 功耗/温度：按厂商走官方用户态 SDK（AMD Ryzen Master / Intel PresentMon）
+            _cpuTelemetry = new CpuTelemetryProvider();
+
             _valueProvider = new HardwareValueProvider(
                 _computer,
                 cfg,
@@ -91,7 +95,8 @@ namespace LiteMonitor.src.SystemServices
                 _diskManager,
                 _perfCounterManager,
                 _lock,
-                _lastValidMap
+                _lastValidMap,
+                _cpuTelemetry
             );
 
             // 3. 异步启动 (唯一优化：不卡UI)
@@ -174,8 +179,8 @@ namespace LiteMonitor.src.SystemServices
                         if (IsMoboOrCooler(hw) && requirements.NeedMobo)
                         {
                              // ★★★ [优化] 降低更新频率：主板传感器每 3 秒更新一次，减少 I/O 阻塞 ★★★
-                             // [Fix] 无论是否 ForceAll (WebServer)，只要是 SuperIO 这种慢速设备，
-                             // 都必须强制跟随慢速扫描周期 (isSlowScanTick)，禁止高频更新。
+                             // [Fix] 只要是 SuperIO 这种慢速设备，都必须强制跟随慢速扫描周期
+                             // (isSlowScanTick)，禁止高频更新。
                              if (isSlowScanTick)
                              {
                                  UpdateWithSubHardware(hw);
@@ -235,6 +240,7 @@ namespace LiteMonitor.src.SystemServices
             }
 
             _valueProvider.Dispose();
+            _cpuTelemetry?.Dispose();
             _perfCounterManager.Dispose(); // ★★★ [新增] 释放计数器资源 ★★★
             _networkManager.ClearCache();
             _diskManager.ClearCache(); // 漏掉的，补上

@@ -1,4 +1,4 @@
-using LiteMonitor.src.Core;
+using SafeMonitor.src.Core;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     public class AboutForm : Form
     {

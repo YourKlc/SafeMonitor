@@ -4,11 +4,11 @@ using System.Drawing;
 using System.Linq;
 using System.Text.Json;
 using System.Windows.Forms;
-using LiteMonitor.src.Core;
-using LiteMonitor.src.UI.Controls;
-using LiteMonitor.src.Core.Actions;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.UI.Controls;
+using SafeMonitor.src.Core.Actions;
 
-namespace LiteMonitor.src.UI.SettingsPage
+namespace SafeMonitor.src.UI.SettingsPage
 {
     public class MonitorPage : SettingsPageBase
     {

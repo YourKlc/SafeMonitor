@@ -129,14 +129,6 @@
     <value>..\resources\assets\HardwareInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
     <comment>HardwareInfo.png</comment>
   </data>
-  <data name="MonitorHistory" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\assets\MonitorHistory.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-    <comment>监控历史</comment>
-  </data>
-  <data name="NetworkIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\assets\NetworkTest.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-    <comment>网络图标</comment>
-  </data>
   <data name="Settings" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\assets\Settings.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
     <comment>Settings</comment>
@@ -144,9 +136,5 @@
   <data name="ThemeIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\assets\ThemeIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
     <comment>主题图标</comment>
-  </data>
-  <data name="TrafficIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\assets\Traffic.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-    <comment>历史流量统计</comment>
   </data>
 </root>

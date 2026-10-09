@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Text.Json.Serialization;
-using LiteMonitor.src.Core;
-namespace LiteMonitor
+using SafeMonitor.src.Core;
+namespace SafeMonitor
 {
     public class Settings
     {
@@ -135,6 +135,7 @@ namespace LiteMonitor
         public float RecordedMaxChassisFan { get; set; } = 3000;
 
         public bool MaxLimitTipShown { get; set; } = false;
+
         
         public bool AlertTempEnabled { get; set; } = true;
         public int AlertTempThreshold { get; set; } = 80;
@@ -142,8 +143,6 @@ namespace LiteMonitor
         public ThresholdsSet Thresholds { get; set; } = new ThresholdsSet();
 
         [JsonIgnore] public DateTime LastAlertTime { get; set; } = DateTime.MinValue;
-        [JsonIgnore] public long SessionUploadBytes { get; set; } = 0;
-        [JsonIgnore] public long SessionDownloadBytes { get; set; } = 0;
         [JsonIgnore] public DateTime LastAutoSaveTime { get; set; } = DateTime.MinValue;
 
         public Dictionary<string, string> GroupAliases { get; set; } = new Dictionary<string, string>();

@@ -1,12 +1,12 @@
-using LiteMonitor.src.Core;
-using LiteMonitor.src.UI.Helpers;
+using SafeMonitor.src.Core;
+using SafeMonitor.src.UI.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using static LiteMonitor.src.UI.Helpers.NativeMethods;
+using static SafeMonitor.src.UI.Helpers.NativeMethods;
 
-namespace LiteMonitor
+namespace SafeMonitor
 {
     public class TaskbarForm : Form
     {
