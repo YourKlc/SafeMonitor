@@ -5,20 +5,17 @@ using Microsoft.Win32;
 namespace SafeMonitor.src.SystemServices
 {
     /// <summary>
-    /// CPU 功耗 / 温度采集（用户态，不使用第三方内核驱动）。
+    /// CPU 功耗 / 温度采集（用户态，不使用任何内核驱动）。
     ///
-    /// 按 CPU 厂商分派到官方用户态 SDK：
-    ///  - AMD  → AMD Ryzen Master Monitoring SDK（AMDRyzenMasterMonitoringDLL.dll）
-    ///            可读 温度 + 功耗(PPT)。需要安装 AMD Ryzen Master 驱动（SDK 自带）。
-    ///  - Intel → Intel PresentMon Service（PresentMonAPI2.dll）
-    ///            仅能读 CPU 功耗（PresentMon 不提供用户态 CPU 温度）。需要安装 PresentMon Service。
+    /// 本类只负责**厂商官方用户态 SDK**：
+    ///  - AMD → AMD Ryzen Master Monitoring SDK（AMDRyzenMasterMonitoringDLL.dll）
+    ///          可读 温度 与 功耗(PPT)。需安装 AMD Ryzen Master。
+    ///  - Intel → 官方无稳定的用户态 CPU 温度/功耗 SDK，本类不提供（返回 null）。
     ///
-    /// 两个 SDK 都是动态加载：若机器上没有安装对应厂商软件/驱动，
-    /// 所有读取都会安全地返回 null（UI 显示 "--"），不会抛异常或崩溃。
-    ///
-    /// 注意：本实现未经实机验证（无法在此环境测试），
-    /// 尤其是 Intel PresentMon 的动态查询 blob 解析与 CPU 功耗指标枚举，
-    /// 建议在真实硬件上校验后再发布。
+    /// 更通用的兜底来源（对所有平台有效，且**无需安装任何东西**）：
+    ///  - 温度 → ACPI 热区（PerformanceCounterManager.GetCpuTemperatureFromThermalZone）
+    ///  - 功耗 → Energy Meter / RAPL（PerformanceCounterManager.GetCpuPowerWatts，Intel 平台实测可用）
+    /// 因此在 Intel 平台上，即使本类返回 null，UI 的 CPU.Temp / CPU.Power 仍能读到真实值。
     /// </summary>
     public sealed class CpuTelemetryProvider : IDisposable
     {
@@ -27,9 +24,8 @@ namespace SafeMonitor.src.SystemServices
         public Vendor CpuVendor { get; }
 
         private readonly AmdRyzenMasterBackend _amd;
-        private readonly IntelPresentMonBackend _intel;
 
-        // 采样节流：两个 SDK 都不宜高频调用（AMD 建议 ~1 次/秒）
+        // 采样节流：SDK 不宜高频调用（AMD 建议 ~1 次/秒）
         private readonly object _sync = new();
         private DateTime _lastSample = DateTime.MinValue;
         private float? _cachedTemp;
@@ -43,22 +39,21 @@ namespace SafeMonitor.src.SystemServices
             {
                 if (CpuVendor == Vendor.Amd)
                     _amd = AmdRyzenMasterBackend.TryCreate();
-                else if (CpuVendor == Vendor.Intel)
-                    _intel = IntelPresentMonBackend.TryCreate();
             }
             catch { /* 任何初始化失败都保持不可用状态 */ }
         }
 
-        public bool IsAvailable => (_amd != null && _amd.IsAvailable) || (_intel != null && _intel.IsAvailable);
+        /// <summary>本提供器是否有可用的厂商 SDK 后端（Intel 恒为 false）。</summary>
+        public bool IsAvailable => _amd != null && _amd.IsAvailable;
 
-        /// <summary>CPU 温度（℃）。仅 AMD 可用；Intel 无用户态途径，返回 null。</summary>
+        /// <summary>CPU 温度（℃）。仅 AMD 经 SDK 提供；其余平台由 ACPI 热区兜底。</summary>
         public float? GetTemperature()
         {
             Sample();
             return _cachedTemp;
         }
 
-        /// <summary>CPU 功耗（W）。AMD / Intel 均可（依赖各自 SDK）。</summary>
+        /// <summary>CPU 功耗（W）。仅 AMD 经 SDK 提供；Intel 无用户态途径，返回 null。</summary>
         public float? GetPower()
         {
             Sample();
@@ -79,10 +74,6 @@ namespace SafeMonitor.src.SystemServices
                     {
                         temp = _amd.GetTemperature();
                         power = _amd.GetPower();
-                    }
-                    else if (_intel != null)
-                    {
-                        power = _intel.GetPower(); // Intel 无用户态温度
                     }
                 }
                 catch { }
@@ -110,7 +101,6 @@ namespace SafeMonitor.src.SystemServices
         public void Dispose()
         {
             try { _amd?.Dispose(); } catch { }
-            try { _intel?.Dispose(); } catch { }
         }
 
         // ==================================================================
@@ -207,173 +197,6 @@ namespace SafeMonitor.src.SystemServices
                 if (!IsAvailable) return;
                 try { PlatformUninit(); } catch { }
                 IsAvailable = false;
-            }
-        }
-
-        // ==================================================================
-        // Intel：PresentMon Service（仅 CPU 功耗；无用户态 CPU 温度）
-        // ==================================================================
-        private sealed class IntelPresentMonBackend : IDisposable
-        {
-            // ---- PresentMonAPI2 最小子集（动态加载 PresentMonAPI2.dll）----
-            private const int PM_STATUS_SUCCESS = 0;
-            // PresentMon 指标枚举：CPU 功耗（不同服务版本枚举值可能不同，需实机校验）
-            private const int PM_METRIC_CPU_POWER = 203; // 尽力而为：未经实机确认
-            private const int PM_STAT_AVG = 0;
-
-            private delegate int pmOpenSessionDelegate(out IntPtr pHandle);
-            private delegate int pmCloseSessionDelegate(IntPtr handle);
-            private delegate int pmStartTrackingProcessDelegate(IntPtr handle, uint processId);
-            private delegate int pmStopTrackingProcessDelegate(IntPtr handle, uint processId);
-            private delegate int pmRegisterDynamicQueryDelegate(IntPtr handle, out IntPtr pQueryHandle, IntPtr elements, ulong elementCount, double windowMs, double metricOffsetMs);
-            private delegate int pmFreeDynamicQueryDelegate(IntPtr queryHandle);
-            private delegate int pmPollDynamicQueryDelegate(IntPtr queryHandle, uint processId, IntPtr blob, out uint numSwapChains);
-
-            [StructLayout(LayoutKind.Sequential)]
-            private struct PM_QUERY_ELEMENT
-            {
-                public int metric;
-                public int stat;
-                public uint deviceId;
-                public uint arrayIndex;
-                public uint reserved;
-                public uint reserved2;
-            }
-
-            private pmOpenSessionDelegate _open;
-            private pmCloseSessionDelegate _close;
-            private pmStartTrackingProcessDelegate _startTrack;
-            private pmStopTrackingProcessDelegate _stopTrack;
-            private pmRegisterDynamicQueryDelegate _register;
-            private pmFreeDynamicQueryDelegate _free;
-            private pmPollDynamicQueryDelegate _poll;
-
-            private IntPtr _session = IntPtr.Zero;
-            private IntPtr _query = IntPtr.Zero;
-            private IntPtr _lib = IntPtr.Zero;
-            private readonly uint _pid = (uint)Environment.ProcessId;
-
-            public bool IsAvailable { get; private set; }
-
-            private IntelPresentMonBackend() { }
-
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-            private static extern IntPtr LoadLibrary(string lpFileName);
-            [DllImport("kernel32.dll", SetLastError = true)]
-            private static extern bool FreeLibrary(IntPtr hModule);
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-            private static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-            private static T GetProc<T>(IntPtr lib, string name) where T : Delegate
-            {
-                IntPtr p = GetProcAddress(lib, name);
-                if (p == IntPtr.Zero) return null;
-                return Marshal.GetDelegateForFunctionPointer<T>(p);
-            }
-
-            public static IntelPresentMonBackend TryCreate()
-            {
-                IntPtr lib = IntPtr.Zero;
-                try
-                {
-                    // PresentMon Service 安装路径（SDK 与 service 一同部署）
-                    string[] candidates =
-                    {
-                        @"PresentMonAPI2.dll",
-                        @"C:\Program Files\Intel\PresentMon\SDK\PresentMonAPI2.dll",
-                        @"C:\Program Files\Intel\PresentMon\PresentMonAPI2.dll",
-                    };
-                    foreach (var c in candidates)
-                    {
-                        lib = LoadLibrary(c);
-                        if (lib != IntPtr.Zero) break;
-                    }
-                    if (lib == IntPtr.Zero) return null;
-
-                    var b = new IntelPresentMonBackend
-                    {
-                        _lib = lib,
-                        _open = GetProc<pmOpenSessionDelegate>(lib, "pmOpenSession"),
-                        _close = GetProc<pmCloseSessionDelegate>(lib, "pmCloseSession"),
-                        _startTrack = GetProc<pmStartTrackingProcessDelegate>(lib, "pmStartTrackingProcess"),
-                        _stopTrack = GetProc<pmStopTrackingProcessDelegate>(lib, "pmStopTrackingProcess"),
-                        _register = GetProc<pmRegisterDynamicQueryDelegate>(lib, "pmRegisterDynamicQuery"),
-                        _free = GetProc<pmFreeDynamicQueryDelegate>(lib, "pmFreeDynamicQuery"),
-                        _poll = GetProc<pmPollDynamicQueryDelegate>(lib, "pmPollDynamicQuery"),
-                    };
-
-                    if (b._open == null || b._register == null || b._poll == null)
-                    {
-                        FreeLibrary(lib);
-                        return null;
-                    }
-
-                    if (b._open(out b._session) != PM_STATUS_SUCCESS || b._session == IntPtr.Zero)
-                    {
-                        FreeLibrary(lib);
-                        return null;
-                    }
-
-                    // 跟踪自身进程（系统级指标也挂在会话上）
-                    b._startTrack?.Invoke(b._session, b._pid);
-
-                    // 注册 CPU 功耗动态查询
-                    var el = new PM_QUERY_ELEMENT { metric = PM_METRIC_CPU_POWER, stat = PM_STAT_AVG };
-                    IntPtr elPtr = Marshal.AllocHGlobal(Marshal.SizeOf<PM_QUERY_ELEMENT>());
-                    try
-                    {
-                        Marshal.StructureToPtr(el, elPtr, false);
-                        if (b._register(b._session, out b._query, elPtr, 1, 1000.0, 0.0) != PM_STATUS_SUCCESS || b._query == IntPtr.Zero)
-                        {
-                            b.Cleanup();
-                            return null;
-                        }
-                    }
-                    finally
-                    {
-                        Marshal.FreeHGlobal(elPtr);
-                    }
-
-                    b.IsAvailable = true;
-                    return b;
-                }
-                catch
-                {
-                    if (lib != IntPtr.Zero) { try { FreeLibrary(lib); } catch { } }
-                    return null;
-                }
-            }
-
-            public float? GetPower()
-            {
-                if (!IsAvailable || _query == IntPtr.Zero) return null;
-                IntPtr blob = IntPtr.Zero;
-                try
-                {
-                    // blob 布局依指标而定，此处按 double 读取并做合理性校验
-                    blob = Marshal.AllocHGlobal(4096);
-                    int status = _poll(_query, _pid, blob, out uint _);
-                    if (status != PM_STATUS_SUCCESS) return null;
-
-                    double val = Marshal.PtrToStructure<double>(blob);
-                    // 剔除脏数据（合理 CPU 功耗范围）
-                    return (val >= 0 && val < 1000) ? (float)val : null;
-                }
-                catch { return null; }
-                finally { if (blob != IntPtr.Zero) Marshal.FreeHGlobal(blob); }
-            }
-
-            private void Cleanup()
-            {
-                try { if (_query != IntPtr.Zero) { _free?.Invoke(_query); _query = IntPtr.Zero; } } catch { }
-                try { if (_session != IntPtr.Zero) { _stopTrack?.Invoke(_session, _pid); _close?.Invoke(_session); _session = IntPtr.Zero; } } catch { }
-            }
-
-            public void Dispose()
-            {
-                IsAvailable = false;
-                Cleanup();
-                try { if (_lib != IntPtr.Zero) { FreeLibrary(_lib); _lib = IntPtr.Zero; } } catch { }
             }
         }
     }

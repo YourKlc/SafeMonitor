@@ -21,6 +21,22 @@ namespace SafeMonitor.src.SystemServices
         private PerformanceCounter? _diskActiveCounter;   // 磁盘活动时间 (%)
         private PerformanceCounter? _uptimeCounter;       // 系统运行时间
 
+        // --- ACPI 热区温度 (纯用户态，无需任何驱动) ---
+        // Windows 通过 ACPI 暴露 "Thermal Zone Information" 计数器，实例名因机器而异
+        // (如 \_TZ.TZ00 / \_SB.ECTZ)。这是主板/EC 上报的热区温度，笔记本上通常接近 CPU 温度。
+        // 可读时用它作为 CPU 温度的兜底来源；读不到则返回 null。
+        private PerformanceCounter? _thermalCounter;
+
+        // --- Energy Meter / RAPL CPU 功耗 (纯用户态，无需任何驱动) ---
+        // Windows 通过 "Energy Meter" 性能计数器暴露 Intel RAPL 能量计量域：
+        //   RAPL_Package0_PKG  → CPU 封装总功耗 (本机实测单位 mW，负载下 ~77W)
+        //   RAPL_Package0_PP0  → CPU 核心功耗
+        //   RAPL_Package0_DRAM → 内存功耗 (部分机型未暴露，返回 0)
+        // 优先选 PKG（封装总功耗），回退 PP0（核心功耗）。单位毫瓦，读取后 /1000 转瓦特。
+        private PerformanceCounter? _cpuPowerCounter;
+        private string? _cpuPowerInstanceName;
+        private bool _cpuPowerInstanceIsPkg;
+
         // --- SMB 计数器 (用于忽略内网流量) ---
         // 经过探测发现，SMB Client Shares 经常缺失，而 Redirector (RDR) 和 Server 是更底层的组件
         // Redirector = 客户端流量 (我访问别人)
@@ -88,6 +104,12 @@ namespace SafeMonitor.src.SystemServices
                     // 系统：运行时间
                     _uptimeCounter = CreateCounter("System", "System Up Time");
 
+                    // ACPI 热区温度 (用户态 CPU 温度兜底来源)
+                    _thermalCounter = CreateThermalCounter();
+
+                    // Energy Meter / RAPL CPU 功耗 (用户态，无需驱动)
+                    CreateCpuPowerCounter();
+
                     // SMB (内网流量)：使用 SMB Client/Server Shares 类别
                     // Client: Read/Write Bytes/sec
                     _smbClientReadCounter = CreateCounter("SMB Client Shares", "Read Bytes/sec", "_Total");
@@ -110,6 +132,8 @@ namespace SafeMonitor.src.SystemServices
                     SafeRead(_diskWriteCounter);
                     SafeRead(_diskActiveCounter);
                     SafeRead(_uptimeCounter);
+                    SafeRead(_thermalCounter);
+                    SafeRead(_cpuPowerCounter);
                     
                     SafeRead(_smbClientReadCounter);
                     SafeRead(_smbClientWriteCounter);
@@ -143,6 +167,129 @@ namespace SafeMonitor.src.SystemServices
                 return null;
             }
         }
+
+        /// <summary>
+        /// 创建 ACPI 热区温度计数器（纯用户态，无需任何驱动）。
+        /// <para>实例名因机器而异（如 \_TZ.TZ00、\_SB.ECTZ），需动态枚举后逐个尝试；
+        /// 取值优先使用 "High Precision Temperature"（0.1K 精度），否则回退到 "Temperature"（K）。</para>
+        /// </summary>
+        private PerformanceCounter? CreateThermalCounter()
+        {
+            const string category = "Thermal Zone Information";
+            try
+            {
+                if (!PerformanceCounterCategory.Exists(category)) return null;
+
+                // 优先 High Precision Temperature（单位 0.1K，精度更高），其次 Temperature（单位 K）
+                string[] counters = { "High Precision Temperature", "Temperature" };
+
+                // 实例名因机器而异，逐个枚举尝试
+                string[] instances;
+                try
+                {
+                    var cat = new PerformanceCounterCategory(category);
+                    instances = cat.GetInstanceNames();
+                }
+                catch { instances = Array.Empty<string>(); }
+
+                foreach (var inst in instances)
+                {
+                    foreach (var cname in counters)
+                    {
+                        try
+                        {
+                            var pc = new PerformanceCounter(category, cname, inst);
+                            pc.NextValue(); // 预热，首次恒为 0
+                            _thermalIsHighPrecision = cname.StartsWith("High Precision", StringComparison.OrdinalIgnoreCase);
+                            NativeInstanceName = inst;
+                            return pc;
+                        }
+                        catch { /* 该实例/计数器组合不可用，继续尝试下一个 */ }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>是否为高精度模式（原始值为 0.1K 而非 K）</summary>
+        private bool _thermalIsHighPrecision;
+        /// <summary>命中的 ACPI 热区实例名（用于诊断）</summary>
+        public string? NativeInstanceName { get; private set; }
+
+        /// <summary>
+        /// 读取 ACPI 热区温度并转换为摄氏度。
+        /// <para>原始值：High Precision Temperature 为 0.1K（开尔文×10），Temperature 为 K；
+        /// 转换为 ℃ 后做合理性校验（0~150℃），异常返回 null。</para>
+        /// </summary>
+        public float? GetCpuTemperatureFromThermalZone()
+        {
+            if (_thermalCounter == null) return null;
+            var raw = SafeRead(_thermalCounter);
+            if (raw == null || raw <= 0) return null;
+
+            double celsius = _thermalIsHighPrecision ? (raw.Value / 10.0 - 273.15) : (raw.Value - 273.15);
+            return (celsius > 0 && celsius < 150) ? (float)celsius : null;
+        }
+
+        /// <summary>
+        /// 创建 Energy Meter (RAPL) CPU 功耗计数器（纯用户态，无需任何驱动）。
+        /// <para>实例名形如 RAPL_Package0_PKG / RAPL_Package0_PP0（不同平台实例名可能不同），
+        /// 优先取包含 "PKG"（封装总功耗）的实例，回退到 "PP0"（核心功耗）。</para>
+        /// </summary>
+        private void CreateCpuPowerCounter()
+        {
+            const string category = "Energy Meter";
+            try
+            {
+                if (!PerformanceCounterCategory.Exists(category)) return;
+
+                string[] instances;
+                try { instances = new PerformanceCounterCategory(category).GetInstanceNames(); }
+                catch { return; }
+
+                // 优选顺序：PKG(封装总功耗) > PP0(核心功耗)；排除 DRAM/PP1 等子域
+                (string inst, bool isPkg)? pick = null;
+                foreach (var inst in instances)
+                {
+                    if (inst.IndexOf("PKG", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        pick = (inst, true);
+                        break;
+                    }
+                    if (pick == null && inst.IndexOf("PP0", StringComparison.OrdinalIgnoreCase) >= 0)
+                        pick = (inst, false);
+                }
+                if (pick == null) return;
+
+                var pc = new PerformanceCounter(category, "Power", pick.Value.inst);
+                pc.NextValue(); // 预热（该计数器基于两次采样差，首次无效）
+                _cpuPowerCounter = pc;
+                _cpuPowerInstanceName = pick.Value.inst;
+                _cpuPowerInstanceIsPkg = pick.Value.isPkg;
+            }
+            catch { /* 平台不支持 Energy Meter 时静默降级 */ }
+        }
+
+        /// <summary>
+        /// 读取 CPU 功耗（瓦特）。数据源为 Windows "Energy Meter" 性能计数器（Intel RAPL，纯用户态）。
+        /// <para>原始值单位为毫瓦(mW)，读取后除以 1000 转为瓦特；做合理性校验（0~1000W），异常返回 null。</para>
+        /// </summary>
+        public float? GetCpuPowerWatts()
+        {
+            if (_cpuPowerCounter == null) return null;
+            var mw = SafeRead(_cpuPowerCounter);
+            if (mw == null) return null;
+
+            float w = mw.Value / 1000f;
+            // 合理性校验：0~1000W（负数/异常值丢弃，0 视为该实例无数据）
+            return (w >= 0 && w < 1000f) ? w : null;
+        }
+
+        /// <summary>命中的 Energy Meter 实例名（用于诊断）</summary>
+        public string? CpuPowerInstanceName => _cpuPowerInstanceName;
+        /// <summary>是否为封装总功耗(PKG)；false 表示回退到核心功耗(PP0)</summary>
+        public bool CpuPowerIsPackage => _cpuPowerInstanceIsPkg;
 
         private void InitStaticHardwareInfo()
         {
@@ -331,6 +478,8 @@ namespace SafeMonitor.src.SystemServices
             _diskWriteCounter?.Dispose();
             _diskActiveCounter?.Dispose();
             _uptimeCounter?.Dispose();
+            _thermalCounter?.Dispose();
+            _cpuPowerCounter?.Dispose();
             
             // 释放 SMB 计数器
             _smbClientReadCounter?.Dispose();

@@ -322,7 +322,9 @@ namespace SafeMonitor.src.SystemServices
 
                     // 2. CPU.Temp (AMD 经 Ryzen Master SDK；Intel 无用户态途径)
                     case "CPU.Temp":
+                        // 优先级：厂商用户态 SDK → ACPI 热区(用户态,无需驱动) → LHM 节点 → 手动传感器
                         result = _cpuTelemetry?.GetTemperature();
+                        if (result == null) result = _perfManager.GetCpuTemperatureFromThermalZone();
                         if (result == null) result = _componentProcessor.GetCpuTemp();
                         if (result == null && _manualSensorCache.TryGetValue("CPU.Temp", out var fallbackT))
                         {
@@ -330,9 +332,11 @@ namespace SafeMonitor.src.SystemServices
                         }
                         break;
 
-                    // 3. CPU.Power (AMD 经 Ryzen Master SDK；Intel 经 PresentMon)
+                    // 3. CPU.Power
+                    // 优先级：厂商 SDK(AMD Ryzen Master) → Energy Meter/RAPL(用户态,无需驱动) → LHM 节点
                     case "CPU.Power":
                         result = _cpuTelemetry?.GetPower();
+                        if (result == null) result = _perfManager.GetCpuPowerWatts();
                         if (result == null)
                         {
                             result = _componentProcessor.GetCompositeValue(key, _manualSensorCache);

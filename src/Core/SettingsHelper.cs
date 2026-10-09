@@ -164,11 +164,11 @@ namespace SafeMonitor
                 new MonitorItemConfig { Key = "DASH.Uptime", SortIndex = 103, TaskbarSortIndex = 1300, VisibleInPanel = true, TaskbarLabel = " " },
                 new MonitorItemConfig { Key = "DASH.IP",   SortIndex = 104, TaskbarSortIndex = 1400, VisibleInPanel = false, TaskbarLabel = " " },
                
-                // [2xx] CPU (负载/频率走性能计数器；功耗/温度走官方用户态 SDK：AMD Ryzen Master / Intel PresentMon)
+                // [2xx] CPU (负载/频率走性能计数器；温度走 ACPI 热区/厂商 SDK；功耗走 Energy Meter(RAPL)/厂商 SDK)
                 new MonitorItemConfig { Key = "CPU.Load",  SortIndex = 201, VisibleInPanel = true, VisibleInTaskbar = true },
-                new MonitorItemConfig { Key = "CPU.Temp",  SortIndex = 202, VisibleInPanel = true },
+                new MonitorItemConfig { Key = "CPU.Temp",  SortIndex = 202, VisibleInPanel = true, VisibleInTaskbar = true },
                 new MonitorItemConfig { Key = "CPU.Clock", SortIndex = 203, VisibleInPanel = false },
-                new MonitorItemConfig { Key = "CPU.Power", SortIndex = 204, VisibleInPanel = false },
+                new MonitorItemConfig { Key = "CPU.Power", SortIndex = 204, VisibleInPanel = true, VisibleInTaskbar = true },
 
                 // [3xx] GPU
                 new MonitorItemConfig { Key = "GPU.Load",  SortIndex = 301, VisibleInPanel = true, VisibleInTaskbar = true },

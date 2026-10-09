@@ -151,6 +151,27 @@ namespace SafeMonitor
             }
 
             // 4. Numeric Value Processing (Hardware items)
+            // ★★★ [Fix] 无有效数据 (Value == null) 时显示 "--" ★★★
+            // 场景：CPU 温度/功耗经厂商用户态 SDK 读取，未安装对应组件时返回 null；
+            // 若不处理，DisplayValue 会保持默认 0f，导致 UI 误显示 "0.00℃/0.00W"。
+            // 注意：需先检查 Value 而非 DisplayValue，因为 DisplayValue 是平滑插值量，默认 0。
+            if (!Value.HasValue)
+            {
+                const string noData = "--";
+                if (_cachedNormalText != noData || _cachedHorizontalText != noData)
+                {
+                    _cachedNormalText = noData;
+                    _cachedHorizontalText = noData;
+                    CachedValueText = noData;
+                    CachedUnitText = "";
+                    HasCustomUnit = false;
+                    _cachedDisplayValue = -99999f; // 失效文本缓存，恢复正常时立即重建
+                    CachedColorState = 0;
+                    CachedPercent = 0.0;
+                }
+                return noData;
+            }
+
             // [Fix] 增加充电状态检查：如果数值变了 OR (是电池相关项 AND 电源状态变了) -> 强制刷新
             bool isBat = Key.StartsWith("BAT", StringComparison.OrdinalIgnoreCase);
             var currentPower = MetricUtils.GetPowerStatus();

@@ -29,3 +29,12 @@ vs/
 node_modules/
 *.pdb
 *.tmp
+
+# 本地临时下载包（依赖包/工具包，非构建输入）
+*.zip
+*.7z
+*.rar
+
+# 说明：resources/SafeMonitor.Updater.exe 为本地构建产物（约 64MB），
+# 不纳入版本控制；由 SafeMonitor.Updater 工程自行 publish 生成。
+resources/SafeMonitor.Updater.exe
