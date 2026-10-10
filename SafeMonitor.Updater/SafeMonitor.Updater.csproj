@@ -6,8 +6,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<!-- Updater 应该是一个完全独立可执行程序 -->
-		<SelfContained>true</SelfContained>
+		<!-- Updater 与主程序共用系统 .NET 8 Desktop Runtime：
+		     主程序本身就是 framework-dependent，目标机必然已装 runtime，
+		     故 Updater 无需自带 runtime（self-contained 会让单文件膨胀到 ~64MB）。
+		     实测 framework-dependent + single-file ≈ 0.16MB，仍是单个 exe，部署方式不变。 -->
+		<SelfContained>false</SelfContained>
 		<PublishSingleFile>true</PublishSingleFile>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<PublishTrimmed>false</PublishTrimmed>
